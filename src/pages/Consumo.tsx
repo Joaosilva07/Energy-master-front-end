@@ -4,7 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CalendarDays, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { CalendarDays, TrendingUp, TrendingDown, AlertCircle, Fan, Radio, Tv, Laptop } from 'lucide-react';
 
 const Consumo = () => {
   return (

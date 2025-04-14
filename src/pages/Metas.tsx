@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -37,7 +36,7 @@ const Metas = () => {
                     <h3 className="text-2xl font-bold">Redução de 20%</h3>
                   </div>
                 </div>
-                <Progress value={65} className="bg-white/20 h-2" indicatorClassName="bg-white" />
+                <Progress value={65} className="bg-white/20 h-2" />
                 <p className="text-sm mt-2">13% alcançado</p>
               </CardContent>
             </Card>
