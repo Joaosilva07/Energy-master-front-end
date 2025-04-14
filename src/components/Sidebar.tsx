@@ -1,0 +1,77 @@
+
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const Sidebar = () => {
+  const location = useLocation();
+  
+  const menuItems = [
+    { icon: BarChart3, label: 'Dashboard', path: '/' },
+    { icon: ZapIcon, label: 'Consumo', path: '/consumo' },
+    { icon: Cpu, label: 'Dispositivos', path: '/dispositivos' },
+    { icon: LightbulbIcon, label: 'Dicas', path: '/dicas' },
+    { icon: Target, label: 'Metas', path: '/metas' },
+    { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+  ];
+
+  return (
+    <div className="h-screen w-56 border-r bg-sidebar">
+      <div className="flex h-14 items-center border-b px-4">
+        <Link to="/" className="flex items-center gap-2 font-semibold text-energy-primary">
+          <ZapIcon className="h-5 w-5" />
+          <span>EnergyMaster</span>
+        </Link>
+      </div>
+      <div className="px-2 py-4">
+        <nav className="flex flex-col gap-1">
+          {menuItems.map((item, index) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <Link
+                key={index}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-sidebar-accent text-energy-primary font-medium"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+      <div className="absolute bottom-4 left-4 right-4">
+        <div className="rounded-md bg-muted p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="rounded-full bg-energy-primary p-1">
+              <LightbulbIcon className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-sm font-medium">Economia de energia</span>
+          </div>
+          <div className="mb-2">
+            <div className="flex justify-between text-xs">
+              <span>15%</span>
+              <span>Meta: 20%</span>
+            </div>
+            <div className="mt-1 h-2 rounded-full bg-muted-foreground/20">
+              <div className="h-full w-[15%] rounded-full bg-energy-primary" />
+            </div>
+          </div>
+          <button className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs">
+            Detalhes
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
