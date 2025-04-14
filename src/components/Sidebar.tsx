@@ -49,12 +49,14 @@ const Sidebar = () => {
         </nav>
       </div>
       <div className="absolute bottom-4 left-4 right-4">
-        <div className="rounded-md bg-muted p-4">
-          <div className="mb-2 flex items-center gap-2">
+        <div className="rounded-md bg-muted p-3">
+          <div className="flex items-center justify-center mb-2">
             <div className="rounded-full bg-energy-primary p-1">
               <LightbulbIcon className="h-4 w-4 text-white" />
             </div>
-            <span className="text-sm font-medium">Economia de energia</span>
+          </div>
+          <div className="text-center mb-2">
+            <span className="text-xs font-medium block">Economia</span>
           </div>
           <div className="mb-2">
             <div className="flex justify-between text-xs">
