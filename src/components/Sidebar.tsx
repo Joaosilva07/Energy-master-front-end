@@ -1,11 +1,11 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   
   const menuItems = [
     { icon: BarChart3, label: 'Dashboard', path: '/' },
@@ -67,7 +67,10 @@ const Sidebar = () => {
               <div className="h-full w-[15%] rounded-full bg-energy-primary" />
             </div>
           </div>
-          <button className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs">
+          <button 
+            onClick={() => navigate('/dicas')}
+            className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs"
+          >
             Detalhes
           </button>
         </div>
