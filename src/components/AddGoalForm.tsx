@@ -24,10 +24,10 @@ interface AddGoalFormProps {
 }
 
 const goalTypes = [
-  { value: 'reduction', label: 'Redução de Consumo', icon: <TrendingDown className="h-5 w-5 text-energy-primary" />, bgColor: 'bg-energy-primary/10' },
-  { value: 'optimization', label: 'Otimização de Dispositivo', icon: <Zap className="h-5 w-5 text-green-500" />, bgColor: 'bg-green-100' },
-  { value: 'peak', label: 'Controle de Pico', icon: <Activity className="h-5 w-5 text-yellow-500" />, bgColor: 'bg-yellow-100' },
-  { value: 'custom', label: 'Meta Personalizada', icon: <Target className="h-5 w-5 text-blue-500" />, bgColor: 'bg-blue-100' },
+  { value: 'reduction', label: 'Redução de Consumo', icon: <TrendingDown className="h-5 w-5 text-energy-primary" />, bgColor: 'bg-energy-primary/10', iconType: 'trendingDown' },
+  { value: 'optimization', label: 'Otimização de Dispositivo', icon: <Zap className="h-5 w-5 text-green-500" />, bgColor: 'bg-green-100', iconType: 'zap' },
+  { value: 'peak', label: 'Controle de Pico', icon: <Activity className="h-5 w-5 text-yellow-500" />, bgColor: 'bg-yellow-100', iconType: 'activity' },
+  { value: 'custom', label: 'Meta Personalizada', icon: <Target className="h-5 w-5 text-blue-500" />, bgColor: 'bg-blue-100', iconType: 'target' },
 ];
 
 const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
@@ -44,7 +44,7 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
     const selectedGoalType = goalTypes.find(type => type.value === goalType);
 
     const newGoal = {
-      id: Date.now().toString(),
+      id: 'new-' + Date.now().toString(),
       title,
       description,
       type: goalType,
@@ -54,6 +54,7 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
       status: "Em Progresso",
       statusColor: "text-yellow-500",
       icon: selectedGoalType?.icon || <Target className="h-5 w-5 text-energy-primary" />,
+      iconType: selectedGoalType?.iconType || "target",
       iconBg: selectedGoalType?.bgColor || "bg-energy-primary/10"
     };
     

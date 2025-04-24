@@ -9,10 +9,22 @@ import { Trophy, Target, TrendingDown, Plus, Check, Clock, Trash2 } from 'lucide
 import AddGoalForm from '@/components/AddGoalForm';
 import { useToast } from "@/components/ui/use-toast";
 
+// Goal interface to better type our data
+interface Goal {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  status: string;
+  statusColor: string;
+  iconType: string; // Changed from direct React component to string identifier
+  iconBg: string;
+}
+
 const Metas = () => {
   const { toast } = useToast();
   const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
-  const [goals, setGoals] = useState(() => {
+  const [goals, setGoals] = useState<Goal[]>(() => {
     const savedGoals = localStorage.getItem('goals');
     return savedGoals ? JSON.parse(savedGoals) : initialGoals;
   });
@@ -28,11 +40,45 @@ const Metas = () => {
     localStorage.setItem('goals', JSON.stringify(goals));
   }, [goals]);
 
-  const handleAddGoal = (newGoal) => {
-    setGoals([...goals, newGoal]);
+  // Function to render the correct icon based on iconType
+  const renderIcon = (iconType: string) => {
+    switch (iconType) {
+      case 'target':
+        return <Target className="h-5 w-5 text-energy-primary" />;
+      case 'trendingDown':
+        return <TrendingDown className="h-5 w-5 text-green-500" />;
+      case 'trophy':
+        return <Trophy className="h-5 w-5 text-yellow-500" />;
+      default:
+        return <Target className="h-5 w-5 text-energy-primary" />;
+    }
   };
 
-  const updateGoalProgress = (goalId, newProgress) => {
+  const handleAddGoal = (newGoal: any) => {
+    // Convert the React component to a string identifier before storing
+    const processedGoal = {
+      ...newGoal,
+      iconType: getIconTypeFromComponent(newGoal.icon)
+    };
+    
+    setGoals([...goals, processedGoal]);
+  };
+
+  // Helper function to determine icon type from a component
+  const getIconTypeFromComponent = (iconComponent: React.ReactNode) => {
+    // This is a simple approach. You might want to enhance this based on your needs
+    if (!iconComponent) return 'target';
+    
+    // Check the type name in the React element
+    const iconElement = iconComponent as React.ReactElement;
+    const componentName = iconElement.type.displayName || iconElement.type.name;
+    
+    if (componentName?.includes('TrendingDown')) return 'trendingDown';
+    if (componentName?.includes('Trophy')) return 'trophy';
+    return 'target'; // Default
+  };
+
+  const updateGoalProgress = (goalId: string, newProgress: number) => {
     setGoals(goals.map(goal => 
       goal.id === goalId 
         ? { 
@@ -53,7 +99,7 @@ const Metas = () => {
     ));
   };
 
-  const removeGoal = (goalId) => {
+  const removeGoal = (goalId: string) => {
     setGoals(goals.filter(goal => goal.id !== goalId));
     toast({
       title: "Meta removida",
@@ -132,7 +178,7 @@ const Metas = () => {
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
                     <div className={`rounded-lg p-2 ${goal.iconBg}`}>
-                      {goal.icon}
+                      {renderIcon(goal.iconType)}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
@@ -183,8 +229,8 @@ const Metas = () => {
   );
 };
 
-// Initial goals data
-const initialGoals = [
+// Initial goals data - modified to use string identifiers instead of React components
+const initialGoals: Goal[] = [
   {
     id: '1',
     title: "Reduzir Consumo Total",
@@ -192,7 +238,7 @@ const initialGoals = [
     progress: 65,
     status: "Em Progresso",
     statusColor: "text-yellow-500",
-    icon: <Target className="h-5 w-5 text-energy-primary" />,
+    iconType: "target",
     iconBg: "bg-energy-primary/10"
   },
   {
@@ -202,7 +248,7 @@ const initialGoals = [
     progress: 85,
     status: "Quase Concluído",
     statusColor: "text-green-500",
-    icon: <TrendingDown className="h-5 w-5 text-green-500" />,
+    iconType: "trendingDown",
     iconBg: "bg-green-100"
   },
   {
@@ -212,7 +258,7 @@ const initialGoals = [
     progress: 40,
     status: "Em Andamento",
     statusColor: "text-yellow-500",
-    icon: <Trophy className="h-5 w-5 text-yellow-500" />,
+    iconType: "trophy",
     iconBg: "bg-yellow-100"
   }
 ];
