@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Search, Settings, LogOut, User } from 'lucide-react';
 import {
   DropdownMenu,
@@ -16,19 +16,46 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from './ui/button';
+import { useToast } from "@/components/ui/use-toast";
 
 const Header = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleLogout = () => {
+    // Remove auth token
+    localStorage.removeItem('isAuthenticated');
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso",
+    });
+    navigate('/login');
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      toast({
+        title: "Pesquisa realizada",
+        description: `Pesquisando por: ${searchTerm}`,
+      });
+    }
+  };
 
   return (
     <header className="flex h-14 items-center justify-between border-b px-6">
       <div className="flex items-center gap-2 lg:w-2/5">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Pesquisar..."
-          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
+        <form onSubmit={handleSearch} className="w-full flex items-center">
+          <Search className="h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground ml-2"
+          />
+        </form>
       </div>
       <div className="flex items-center gap-4">
         <Popover>
@@ -86,7 +113,7 @@ const Header = () => {
               Configurações
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               Sair
             </DropdownMenuItem>

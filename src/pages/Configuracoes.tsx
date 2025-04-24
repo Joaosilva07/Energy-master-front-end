@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,26 +10,56 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Moon, Sun, Palette, Lock, Bell, Eye, EyeOff } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import ColorThemeSelector from '@/components/ui/color-theme-selector';
+import { useTheme } from '@/components/ThemeProvider';
 
 const Configuracoes = () => {
   const { toast } = useToast();
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [isDarkMode, setIsDarkMode] = React.useState(false);
+  const { theme, setTheme, isDark, setIsDark } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleThemeChange = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+  };
+
+  const toggleDarkMode = () => {
+    setIsDark(!isDark);
     toast({
-      title: "Tema alterado",
-      description: `Modo ${isDarkMode ? 'claro' : 'escuro'} ativado`,
+      title: "Modo alterado",
+      description: `Modo ${!isDark ? 'escuro' : 'claro'} ativado`,
     });
   };
 
   const handlePasswordChange = () => {
+    if (!currentPassword) {
+      toast({
+        title: "Erro",
+        description: "Senha atual é obrigatória",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erro",
+        description: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     toast({
       title: "Senha alterada",
       description: "Sua senha foi atualizada com sucesso",
     });
+    
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
   };
 
   return (
@@ -104,7 +134,7 @@ const Configuracoes = () => {
                         Receba notificações quando seu consumo estiver acima do normal
                       </p>
                     </div>
-                    <Switch />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
@@ -113,7 +143,7 @@ const Configuracoes = () => {
                         Receba um resumo semanal do seu consumo
                       </p>
                     </div>
-                    <Switch />
+                    <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
@@ -122,7 +152,7 @@ const Configuracoes = () => {
                         Receba dicas para economizar energia
                       </p>
                     </div>
-                    <Switch />
+                    <Switch defaultChecked />
                   </div>
                 </CardContent>
               </Card>
@@ -136,10 +166,10 @@ const Configuracoes = () => {
                     Personalize a aparência do sistema
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      {isDarkMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                      {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
                       <div>
                         <Label>Modo escuro</Label>
                         <p className="text-sm text-muted-foreground">
@@ -147,24 +177,22 @@ const Configuracoes = () => {
                         </p>
                       </div>
                     </div>
-                    <Switch checked={isDarkMode} onCheckedChange={handleThemeChange} />
+                    <Switch checked={isDark} onCheckedChange={toggleDarkMode} />
                   </div>
-                  <div className="flex items-center justify-between">
+                  
+                  <div className="space-y-4">
                     <div className="flex items-center gap-2">
                       <Palette className="h-4 w-4" />
                       <div>
-                        <Label>Tema do sistema</Label>
+                        <Label>Cor do Tema</Label>
                         <p className="text-sm text-muted-foreground">
-                          Escolha as cores do sistema
+                          Escolha a cor principal do sistema
                         </p>
                       </div>
                     </div>
-                    <select className="rounded-md border px-2 py-1">
-                      <option>Padrão</option>
-                      <option>Verde</option>
-                      <option>Azul</option>
-                      <option>Roxo</option>
-                    </select>
+                    <div className="mt-3">
+                      <ColorThemeSelector currentTheme={theme} onThemeChange={handleThemeChange} />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -184,9 +212,12 @@ const Configuracoes = () => {
                     <div className="relative">
                       <Input 
                         id="current-password" 
-                        type={showPassword ? "text" : "password"} 
+                        type={showPassword ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                       />
                       <button
+                        type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-2 top-1/2 -translate-y-1/2"
                       >
@@ -203,7 +234,9 @@ const Configuracoes = () => {
                     <div className="relative">
                       <Input 
                         id="new-password" 
-                        type={showPassword ? "text" : "password"} 
+                        type={showPassword ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
                       />
                     </div>
                   </div>
@@ -212,7 +245,9 @@ const Configuracoes = () => {
                     <div className="relative">
                       <Input 
                         id="confirm-password" 
-                        type={showPassword ? "text" : "password"} 
+                        type={showPassword ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
                       />
                     </div>
                   </div>

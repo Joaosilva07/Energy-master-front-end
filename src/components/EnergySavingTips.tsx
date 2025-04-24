@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { LightbulbIcon, Zap, Sun, Thermometer, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const tips = [
   {
@@ -26,6 +27,8 @@ const tips = [
 ];
 
 const EnergySavingTips = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="rounded-lg border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
@@ -48,7 +51,10 @@ const EnergySavingTips = () => {
           </div>
         ))}
       </div>
-      <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-muted p-2 text-sm font-medium hover:bg-muted/80">
+      <button 
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-muted p-2 text-sm font-medium hover:bg-muted/80"
+        onClick={() => navigate('/dicas')}
+      >
         Ver todas as dicas
         <ArrowRight className="h-4 w-4" />
       </button>

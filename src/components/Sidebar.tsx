@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target } from 'lucide-react';
@@ -15,6 +16,50 @@ const Sidebar = () => {
     { icon: Target, label: 'Metas', path: '/metas' },
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
   ];
+
+  // Get stored device data
+  const getDevicesData = () => {
+    try {
+      const savedDevices = localStorage.getItem('devices');
+      if (savedDevices) {
+        const devices = JSON.parse(savedDevices);
+        const activeDevices = devices.filter(d => d.status === 'online');
+        return {
+          totalDevices: devices.length,
+          activeDevices: activeDevices.length,
+          totalConsumption: devices.reduce((total, device) => total + (device.powerState ? device.consumption : 0), 0)
+        };
+      }
+      return { totalDevices: 0, activeDevices: 0, totalConsumption: 0 };
+    } catch (e) {
+      return { totalDevices: 0, activeDevices: 0, totalConsumption: 0 };
+    }
+  };
+
+  // Get goals data
+  const getGoalsData = () => {
+    try {
+      const savedGoals = localStorage.getItem('goals');
+      if (savedGoals) {
+        const goals = JSON.parse(savedGoals);
+        const completedGoals = goals.filter(goal => goal.progress >= 100);
+        const totalProgress = goals.length > 0 
+          ? Math.round(goals.reduce((acc, goal) => acc + goal.progress, 0) / goals.length) 
+          : 0;
+        return {
+          totalGoals: goals.length,
+          completedGoals: completedGoals.length,
+          averageProgress: totalProgress
+        };
+      }
+      return { totalGoals: 0, completedGoals: 0, averageProgress: 0 };
+    } catch (e) {
+      return { totalGoals: 0, completedGoals: 0, averageProgress: 0 };
+    }
+  };
+
+  const devicesData = getDevicesData();
+  const goalsData = getGoalsData();
 
   return (
     <div className="h-screen w-56 border-r bg-sidebar">
@@ -56,15 +101,20 @@ const Sidebar = () => {
             </div>
           </div>
           <div className="text-center mb-2">
-            <span className="text-xs font-medium block">Economia</span>
+            <span className="text-xs font-medium block">
+              {devicesData.activeDevices}/{devicesData.totalDevices} Dispositivos Ativos
+            </span>
           </div>
           <div className="mb-2">
             <div className="flex justify-between text-xs">
-              <span>15%</span>
+              <span>{goalsData.averageProgress}%</span>
               <span>Meta: 20%</span>
             </div>
             <div className="mt-1 h-2 rounded-full bg-muted-foreground/20">
-              <div className="h-full w-[15%] rounded-full bg-energy-primary" />
+              <div 
+                className="h-full rounded-full bg-energy-primary" 
+                style={{ width: `${goalsData.averageProgress}%` }}
+              />
             </div>
           </div>
           <button 
