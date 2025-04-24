@@ -1,56 +1,70 @@
 
 import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
 
-const Login = () => {
+const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This will be replaced with Supabase auth later
-    if (email === 'admin' && password === 'admin') {
-      localStorage.setItem('isAuthenticated', 'true');
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
-      });
-      navigate('/');
-    } else {
-      toast({
-        title: "Login failed",
-        description: "Invalid credentials. Try admin/admin for demo.",
-        variant: "destructive"
-      });
-    }
+    // This will be replaced with Supabase auth logic later
+    console.log('SignUp attempted with:', { email, password, name });
+    navigate('/login');
   };
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Login Form */}
+      {/* Left Side - Welcome Banner */}
+      <div className="w-1/2 bg-energy-primary p-8 flex flex-col items-center justify-center text-white">
+        <h1 className="text-4xl font-bold mb-4">Welcome Back</h1>
+        <p className="mb-8">Already have an account?</p>
+        <Button
+          variant="outline"
+          className="text-white border-white hover:bg-white hover:text-energy-primary"
+          onClick={() => navigate('/login')}
+        >
+          Sign In
+        </Button>
+      </div>
+
+      {/* Right Side - SignUp Form */}
       <div className="w-1/2 p-8 flex flex-col justify-center">
         <div className="max-w-md w-full mx-auto space-y-8">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold">Sign In</h2>
-            <p className="text-muted-foreground">Enter your credentials to access your account</p>
+          <div className="space-y-2 text-center">
+            <h2 className="text-2xl font-bold">Create an Account</h2>
+            <p className="text-muted-foreground">Enter your information to get started</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">USERNAME</label>
+                <label className="text-sm font-medium">NAME</label>
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="Enter your username"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="pl-10"
+                  />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">EMAIL</label>
+                <div className="relative">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -65,7 +79,7 @@ const Login = () => {
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -87,44 +101,14 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <label htmlFor="remember" className="text-sm">
-                  Remember Me
-                </label>
-              </div>
-              <Button
-                type="button"
-                variant="link"
-                className="text-sm text-energy-primary"
-                onClick={() => navigate('/forgot-password')}
-              >
-                Forgot Password?
-              </Button>
-            </div>
-
             <Button type="submit" className="w-full bg-energy-primary">
-              Sign In
+              Create Account
             </Button>
           </form>
         </div>
-      </div>
-
-      {/* Right Side - Welcome Banner */}
-      <div className="w-1/2 bg-energy-primary p-8 flex flex-col items-center justify-center text-white">
-        <h1 className="text-4xl font-bold mb-4">New Here?</h1>
-        <p className="mb-8">Sign up and discover our platform</p>
-        <Button
-          variant="outline"
-          className="text-white border-white hover:bg-white hover:text-energy-primary"
-          onClick={() => navigate('/signup')}
-        >
-          Sign Up
-        </Button>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default SignUp;

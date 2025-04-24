@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import Consumo from "./pages/Consumo";
 import Dispositivos from "./pages/Dispositivos";
@@ -15,9 +16,9 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// This will be replaced with actual auth check after Supabase integration
+// This will be replaced with Supabase auth later
 const isAuthenticated = () => {
-  return false; // Change this to use Supabase auth status later
+  return localStorage.getItem('isAuthenticated') === 'true';
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -35,6 +36,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
           <Route path="/" element={
             <ProtectedRoute>
               <Dashboard />
