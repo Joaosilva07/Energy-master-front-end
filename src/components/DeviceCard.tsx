@@ -3,7 +3,7 @@ import React from 'react';
 import { Tv, Laptop, Fan, Radio, Power, Trash2, CloudOff, Cloud } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Device } from '@/hooks/useDevices';
+import { Device } from '@/types/device.types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { calculateActiveTime, calculateCurrentConsumption } from '@/lib/deviceUtils';
 
@@ -39,6 +39,13 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   
   // Calculate estimated usage based on active time
   const estimatedUsage = calculateCurrentConsumption(device, activeTime);
+
+  // Prevent multiple rapid clicks
+  const handlePowerToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onTogglePower(device.id);
+  };
   
   return (
     <Card>
@@ -85,7 +92,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => onTogglePower(device.id)}
+              onClick={handlePowerToggle}
               className={device.powerState ? 'text-green-500' : 'text-gray-400'}
             >
               <Power className="h-5 w-5" />

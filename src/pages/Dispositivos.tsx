@@ -16,6 +16,7 @@ const Dispositivos = () => {
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const { devices, addDevice, toggleDevicePower, removeDevice, fetchDevices, updateDeviceStatus } = useDevices();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isProcessingToggle, setIsProcessingToggle] = useState(false);
   const { toast } = useToast();
   
   // Integração com a nuvem
@@ -62,27 +63,37 @@ const Dispositivos = () => {
     };
   }, [fetchDevices]);
 
-  // Função para ligar/desligar dispositivo com integração à nuvem
+  // Função para ligar/desligar dispositivo com integração à nuvem e prevenção de cliques rápidos
   const handleToggleDevice = useCallback(async (deviceId: string) => {
-    // Encontra o dispositivo
-    const device = devices.find(d => d.id === deviceId);
-    if (!device) return;
+    // Prevenir múltiplos cliques rápidos
+    if (isProcessingToggle) return;
     
-    // Se a nuvem estiver habilitada, envia o comando pela nuvem
-    if (cloudConnection.isConnected && cloudEnabled) {
-      const newState = !device.powerState;
-      const success = await cloudConnection.updateDeviceInCloud(deviceId, newState);
+    setIsProcessingToggle(true);
+    
+    try {
+      // Encontra o dispositivo
+      const device = devices.find(d => d.id === deviceId);
+      if (!device) return;
       
-      // Se o comando na nuvem foi bem-sucedido, o callback onDeviceUpdate já atualizará o estado
-      if (!success) {
-        // Se falhou na nuvem, usa o método local como fallback
-        toggleDevicePower(deviceId);
+      // Se a nuvem estiver habilitada, envia o comando pela nuvem
+      if (cloudConnection.isConnected && cloudEnabled) {
+        const newState = !device.powerState;
+        const success = await cloudConnection.updateDeviceInCloud(deviceId, newState);
+        
+        // Se o comando na nuvem foi bem-sucedido, o callback onDeviceUpdate já atualizará o estado
+        if (!success) {
+          // Se falhou na nuvem, usa o método local como fallback
+          await toggleDevicePower(deviceId);
+        }
+      } else {
+        // Usa o método local
+        await toggleDevicePower(deviceId);
       }
-    } else {
-      // Usa o método local
-      toggleDevicePower(deviceId);
+    } finally {
+      // Garantir que o processamento seja liberado após conclusão
+      setTimeout(() => setIsProcessingToggle(false), 500);
     }
-  }, [devices, toggleDevicePower, cloudConnection, cloudEnabled]);
+  }, [devices, toggleDevicePower, cloudConnection, cloudEnabled, isProcessingToggle]);
 
   // Quando a integração com Alexa for fechada
   const handleAlexaDialogChange = (open: boolean) => {
