@@ -12,25 +12,52 @@ const SignUp = () => {
   const [name, setName] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // This will be replaced with Supabase auth logic later
-    console.log('SignUp attempted with:', { email, password, name });
-    navigate('/login');
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const userData = {
+    name,
+    email,
+    password,
   };
+
+  try {
+   
+    const response = await fetch('/singup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao criar usuário');
+    }
+
+    const data = await response.json();
+    console.log('Usuário criado com sucesso:', data);
+
+    
+    navigate('/login');
+  } catch (error) {
+    console.error('Erro durante o cadastro:', error);
+    
+  }
+};
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Welcome Banner */}
       <div className="w-1/2 bg-energy-primary p-8 flex flex-col items-center justify-center text-white">
-        <h1 className="text-4xl font-bold mb-4">Welcome Back</h1>
-        <p className="mb-8">Already have an account?</p>
+        <h1 className="text-4xl font-bold mb-4">Bem vindo de volta!!</h1>
+        <p className="mb-8">Ja tem uma conta, mestre??</p>
         <Button
           variant="outline"
-          className="text-white border-white hover:bg-white hover:text-energy-primary"
+          className="text-black border-white hover:bg-white hover:text-energy-primary"
           onClick={() => navigate('/login')}
         >
-          Sign In
+          logar
         </Button>
       </div>
 
@@ -38,18 +65,18 @@ const SignUp = () => {
       <div className="w-1/2 p-8 flex flex-col justify-center">
         <div className="max-w-md w-full mx-auto space-y-8">
           <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-bold">Create an Account</h2>
-            <p className="text-muted-foreground">Enter your information to get started</p>
+            <h2 className="text-2xl font-bold">Criar uma conta</h2>
+            <p className="text-muted-foreground">Coloque suas informações para começarmos.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">NAME</label>
+                <label className="text-sm font-medium">Nome</label>
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="Enter your name"
+                    placeholder="coloque seu nome"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -60,11 +87,11 @@ const SignUp = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">EMAIL</label>
+                <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Input
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="coloque seu email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -75,11 +102,11 @@ const SignUp = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">PASSWORD</label>
+                <label className="text-sm font-medium">Senha</label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Create a password"
+                    placeholder="coloque sua senha"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -102,7 +129,7 @@ const SignUp = () => {
             </div>
 
             <Button type="submit" className="w-full bg-energy-primary">
-              Create Account
+              Criar conta
             </Button>
           </form>
         </div>
