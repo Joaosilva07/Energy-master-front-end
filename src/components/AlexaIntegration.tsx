@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,7 @@ const AlexaIntegration: React.FC<AlexaIntegrationProps> = ({ open, onOpenChange 
   const [progress, setProgress] = useState(0);
   const [connected, setConnected] = useState(false);
   const [cloudEnabled, setCloudEnabled] = useState(true);
-  const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookUrl, setWebhookUrl] = useState('energymaster.up.railway.app');
   const [deviceStatus, setDeviceStatus] = useState<Record<string, { online: boolean, lastSeen: string }>>({});
 
   // Inicializar status dos dispositivos
@@ -264,7 +263,7 @@ const AlexaIntegration: React.FC<AlexaIntegrationProps> = ({ open, onOpenChange 
                       onChange={(e) => setWebhookUrl(e.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Configure um webhook no Zapier ou AWS para receber comandos da Alexa
+                      Webhook configurado para receber comandos da Alexa via Railway
                     </p>
                   </div>
                 </div>

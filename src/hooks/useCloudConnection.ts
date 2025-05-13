@@ -130,8 +130,14 @@ export function useCloudConnection(devices: Device[], options: CloudConnectionOp
       return false;
     }
     
+    console.log(`Comando recebido via webhook (energymaster.up.railway.app) para dispositivo ${command.deviceId}: ${command.action}`);
     const newPowerState = command.action === 'on';
-    console.log(`Comando recebido via webhook para dispositivo ${command.deviceId}: ${command.action}`);
+    
+    // Registra a recepção do webhook
+    toast({
+      title: "Comando Alexa recebido",
+      description: `Via webhook: "${command.action}" para dispositivo ${command.deviceId}`,
+    });
     
     return await updateDeviceInCloud(command.deviceId, newPowerState);
   };
