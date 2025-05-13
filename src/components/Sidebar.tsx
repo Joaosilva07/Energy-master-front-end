@@ -3,10 +3,12 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUser } from '@/contexts/UserContext';
 
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useUser();
   
   const menuItems = [
     { icon: BarChart3, label: 'Dashboard', path: '/' },
@@ -17,10 +19,12 @@ const Sidebar = () => {
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
   ];
 
-  // Get stored device data
+  // Get stored device data for the current user
   const getDevicesData = () => {
     try {
-      const savedDevices = localStorage.getItem('devices');
+      if (!user) return { totalDevices: 0, activeDevices: 0, totalConsumption: 0 };
+      
+      const savedDevices = localStorage.getItem(`devices_${user.id}`);
       if (savedDevices) {
         const devices = JSON.parse(savedDevices);
         const activeDevices = devices.filter(d => d.status === 'online');
@@ -36,10 +40,12 @@ const Sidebar = () => {
     }
   };
 
-  // Get goals data
+  // Get goals data for the current user
   const getGoalsData = () => {
     try {
-      const savedGoals = localStorage.getItem('goals');
+      if (!user) return { totalGoals: 0, completedGoals: 0, averageProgress: 0 };
+      
+      const savedGoals = localStorage.getItem(`goals_${user.id}`);
       if (savedGoals) {
         const goals = JSON.parse(savedGoals);
         const completedGoals = goals.filter(goal => goal.progress >= 100);
@@ -70,6 +76,12 @@ const Sidebar = () => {
         </Link>
       </div>
       <div className="px-2 py-4">
+        {user && (
+          <div className="mb-4 px-3 py-2">
+            <p className="text-sm font-medium">Olá, {user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
+          </div>
+        )}
         <nav className="flex flex-col gap-1">
           {menuItems.map((item, index) => {
             const Icon = item.icon;

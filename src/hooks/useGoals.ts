@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Target, TrendingDown, Activity, Trophy } from "lucide-react";
+import { useUser } from '@/contexts/UserContext';
 
 // Goal interface to better type our data
 export interface Goal {
@@ -15,10 +15,11 @@ export interface Goal {
   target?: number;
   targetDate?: string;
   type?: string;
+  userId: string;
 }
 
 // Initial goals data
-const initialGoals: Goal[] = [
+const initialGoals: Omit<Goal, 'userId'>[] = [
   {
     id: '1',
     title: "Reduzir Consumo Total",
@@ -52,18 +53,40 @@ const initialGoals: Goal[] = [
 ];
 
 export const useGoals = () => {
+  const { user } = useUser();
+  const userId = user?.id || 'anonymous';
+  
   const [goals, setGoals] = useState<Goal[]>(() => {
-    const savedGoals = localStorage.getItem('goals');
-    return savedGoals ? JSON.parse(savedGoals) : initialGoals;
+    const savedGoals = localStorage.getItem(`goals_${userId}`);
+    
+    if (savedGoals) {
+      return JSON.parse(savedGoals);
+    } else if (user) {
+      // If the user exists but has no goals, give them the initial set
+      const userGoals = initialGoals.map(goal => ({
+        ...goal,
+        userId
+      })) as Goal[];
+      return userGoals;
+    }
+    
+    return [];
   });
   
   // Save goals to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('goals', JSON.stringify(goals));
-  }, [goals]);
+    if (userId) {
+      localStorage.setItem(`goals_${userId}`, JSON.stringify(goals));
+    }
+  }, [goals, userId]);
   
-  const addGoal = (newGoal: Goal) => {
-    setGoals([...goals, newGoal]);
+  const addGoal = (newGoal: Omit<Goal, 'userId'>) => {
+    const goalWithUserId = {
+      ...newGoal,
+      userId
+    } as Goal;
+    
+    setGoals([...goals, goalWithUserId]);
   };
   
   const updateGoalProgress = (goalId: string, newProgress: number) => {
@@ -91,20 +114,25 @@ export const useGoals = () => {
     setGoals(goals.filter(goal => goal.id !== goalId));
   };
   
+  // Filter goals for the current user
+  const userGoals = goals.filter(goal => goal.userId === userId);
+  
   // Calculate total progress for the main goal
-  const totalProgress = Math.min(
-    Math.round(goals.reduce((acc, goal) => acc + (goal.progress / goals.length), 0)),
-    100
-  );
+  const totalProgress = userGoals.length > 0
+    ? Math.min(
+        Math.round(userGoals.reduce((acc, goal) => acc + (goal.progress / userGoals.length), 0)),
+        100
+      )
+    : 0;
   
   return { 
-    goals, 
+    goals: userGoals, 
     addGoal, 
     updateGoalProgress, 
     removeGoal,
     totalProgress,
-    completedGoalsCount: goals.filter(g => g.progress >= 100).length,
-    recentlyCompletedCount: goals.filter(g => g.progress >= 100 && g.id.includes('new')).length,
-    inProgressCount: goals.filter(g => g.progress < 100).length
+    completedGoalsCount: userGoals.filter(g => g.progress >= 100).length,
+    recentlyCompletedCount: userGoals.filter(g => g.progress >= 100 && g.id.includes('new')).length,
+    inProgressCount: userGoals.filter(g => g.progress < 100).length
   };
 };

@@ -14,6 +14,7 @@ import Metas from "./pages/Metas";
 import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { UserProvider } from "./contexts/UserContext";
 
 const queryClient = new QueryClient();
 
@@ -36,41 +37,43 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/consumo" element={
-              <ProtectedRoute>
-                <Consumo />
-              </ProtectedRoute>
-            } />
-            <Route path="/dispositivos" element={
-              <ProtectedRoute>
-                <Dispositivos />
-              </ProtectedRoute>
-            } />
-            <Route path="/dicas" element={
-              <ProtectedRoute>
-                <Dicas />
-              </ProtectedRoute>
-            } />
-            <Route path="/metas" element={
-              <ProtectedRoute>
-                <Metas />
-              </ProtectedRoute>
-            } />
-            <Route path="/configuracoes" element={
-              <ProtectedRoute>
-                <Configuracoes />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <UserProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/consumo" element={
+                <ProtectedRoute>
+                  <Consumo />
+                </ProtectedRoute>
+              } />
+              <Route path="/dispositivos" element={
+                <ProtectedRoute>
+                  <Dispositivos />
+                </ProtectedRoute>
+              } />
+              <Route path="/dicas" element={
+                <ProtectedRoute>
+                  <Dicas />
+                </ProtectedRoute>
+              } />
+              <Route path="/metas" element={
+                <ProtectedRoute>
+                  <Metas />
+                </ProtectedRoute>
+              } />
+              <Route path="/configuracoes" element={
+                <ProtectedRoute>
+                  <Configuracoes />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </UserProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>

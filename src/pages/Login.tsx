@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import axios from 'axios';
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
+import { useUser } from '@/contexts/UserContext';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -15,43 +15,49 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setUser } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, { email, password });
+    try {
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, { email, password });
 
-    if (response.status === 200) {
-      const { token, user } = response.data;
+      if (response.status === 200) {
+        const { token, user } = response.data;
 
-      Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
-      
+        // Store authentication data
+        Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify(user));
+        
+        // Update user context
+        setUser(user);
 
-      toast({
-        title: 'Login bem-sucedido!',
-        description: `Bem-vindo, ${user.name}!`,
-      });
+        toast({
+          title: 'Login bem-sucedido!',
+          description: `Bem-vindo, ${user.name}!`,
+        });
 
-      navigate('/dashboard');
+        navigate('/');
+      }
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error);
+      if (error.response && error.response.status === 401) {
+        toast({
+          title: 'Erro',
+          description: 'Credenciais inválidas',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Erro',
+          description: 'Erro ao tentar fazer login',
+          variant: 'destructive',
+        });
+      }
     }
-  } catch (error: any) {
-    console.error('Erro ao fazer login:', error);
-    if (error.response && error.response.status === 401) {
-      toast({
-        title: 'Erro',
-        description: 'Credenciais inválidas',
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Erro',
-        description: 'Erro ao tentar fazer login',
-        variant: 'destructive',
-      });
-    }
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex">

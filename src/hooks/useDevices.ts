@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { useUser } from '@/contexts/UserContext';
 
 export interface Device {
   id: string;
@@ -11,9 +12,10 @@ export interface Device {
   lastActivity: string;
   powerState: boolean;
   location?: string;
+  userId: string;
 }
 
-// Dispositivos iniciais para demonstração
+// Initial devices for demonstration
 const initialDevices: Device[] = [
   {
     id: '1',
@@ -23,7 +25,8 @@ const initialDevices: Device[] = [
     status: 'online',
     lastActivity: 'Há 5 minutos',
     powerState: true,
-    location: 'Sala'
+    location: 'Sala',
+    userId: 'default'
   },
   {
     id: '2',
@@ -33,7 +36,8 @@ const initialDevices: Device[] = [
     status: 'online',
     lastActivity: 'Agora',
     powerState: true,
-    location: 'Cozinha'
+    location: 'Cozinha',
+    userId: 'default'
   },
   {
     id: '3',
@@ -43,7 +47,8 @@ const initialDevices: Device[] = [
     status: 'online',
     lastActivity: 'Há 2 minutos',
     powerState: true,
-    location: 'Quarto'
+    location: 'Quarto',
+    userId: 'default'
   },
   {
     id: '4',
@@ -53,24 +58,47 @@ const initialDevices: Device[] = [
     status: 'offline',
     lastActivity: 'Há 2 horas',
     powerState: false,
-    location: 'Escritório'
+    location: 'Escritório',
+    userId: 'default'
   }
 ];
 
 export function useDevices() {
   const { toast } = useToast();
+  const { user } = useUser();
+  const userId = user?.id || 'anonymous';
+  
   const [devices, setDevices] = useState<Device[]>(() => {
-    const savedDevices = localStorage.getItem('devices');
-    return savedDevices ? JSON.parse(savedDevices) : initialDevices;
+    const savedDevices = localStorage.getItem(`devices_${userId}`);
+    
+    if (savedDevices) {
+      return JSON.parse(savedDevices);
+    } else if (user) {
+      // If the user exists but has no devices, give them the initial set
+      const userDevices = initialDevices.map(device => ({
+        ...device,
+        userId: userId
+      }));
+      return userDevices;
+    }
+    
+    return [];
   });
 
-  // Salvar dispositivos no localStorage sempre que houver alterações
+  // Save devices to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('devices', JSON.stringify(devices));
-  }, [devices]);
+    if (userId) {
+      localStorage.setItem(`devices_${userId}`, JSON.stringify(devices));
+    }
+  }, [devices, userId]);
 
-  const addDevice = (newDevice: Device) => {
-    setDevices([...devices, newDevice]);
+  const addDevice = (newDevice: Omit<Device, 'userId'>) => {
+    const deviceWithUserId = {
+      ...newDevice,
+      userId
+    } as Device;
+    
+    setDevices([...devices, deviceWithUserId]);
   };
 
   const toggleDevicePower = (deviceId: string) => {
@@ -101,7 +129,7 @@ export function useDevices() {
   };
 
   return {
-    devices,
+    devices: devices.filter(device => device.userId === userId),
     addDevice,
     toggleDevicePower,
     removeDevice
