@@ -15,6 +15,7 @@ import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { UserProvider } from "./contexts/UserContext";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -24,9 +25,15 @@ const isAuthenticated = () => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  if (!isAuthenticated()) {
+  const authenticated = isAuthenticated();
+  console.log("Protected route check: isAuthenticated =", authenticated);
+  
+  if (!authenticated) {
+    console.log("Not authenticated, redirecting to login");
     return <Navigate to="/login" replace />;
   }
+  
+  console.log("Authenticated, rendering protected content");
   return <>{children}</>;
 };
 

@@ -43,6 +43,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           role: session.user.role || 'user'
         };
         setUser(userData);
+        localStorage.setItem('isAuthenticated', 'true');
+      } else {
+        localStorage.removeItem('isAuthenticated');
       }
       
       setIsLoading(false);
@@ -62,8 +65,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
             role: newSession.user.role || 'user'
           };
           setUser(userData);
+          localStorage.setItem('isAuthenticated', 'true');
         } else {
           setUser(null);
+          localStorage.removeItem('isAuthenticated');
         }
         
         setIsLoading(false);
@@ -81,6 +86,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
+      localStorage.removeItem('isAuthenticated');
       navigate('/login');
       
       toast({
