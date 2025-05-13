@@ -1,9 +1,10 @@
+
 import { Device } from '@/types/device.types';
 import { ConsumptionMetrics } from '@/types/energyAnalysis.types';
 import { simulatedDataset } from '@/data/energyConsumptionDataset';
 
 export const energyMetricsService = {
-  // Calculate energy consumption metrics with improved formulas based on the provided spec
+  // Calculate energy consumption metrics based on the provided formula
   calculateMetrics(devices: Device[], localDate: Date = new Date()): ConsumptionMetrics {
     // If no devices, return default values
     if (!devices || devices.length === 0) {
@@ -16,26 +17,43 @@ export const energyMetricsService = {
       };
     }
 
-    // 1. CONSUMO TOTAL: soma de todos os consumos medidos em kWh
-    const totalMonthlyConsumption = devices.reduce((sum, device) => sum + device.consumption, 0);
+    // Calculate consumption using the formula:
+    // CONSUMO (kWh) = potência (W) × horas de uso por dia (h) × dias de uso no mês / 1000
+    const daysInMonth = 30; // Standard month for calculation
     
-    // Calculate daily consumption (total ÷ 30 days)
-    const dailyConsumption = totalMonthlyConsumption / 30;
+    // Assume an average of 5 hours usage per day if not specified
+    const defaultHoursPerDay = 5;
     
-    // 2. CONSUMO EM PICO: consumo durante horários de pico (18h-21h)
-    // For peak consumption, use hourly patterns from dataset to calculate peak hours (18h-21h)
+    // Calculate total consumption for all devices
+    const totalMonthlyConsumption = devices.reduce((sum, device) => {
+      // Base calculation on device status (if powered on, use actual consumption)
+      if (device.powerState) {
+        // For each device, apply the formula:
+        // We convert consumption (monthly kWh) to power (W) by working backwards
+        // Assume power (W) = monthly consumption (kWh) * 1000 / (hours per day * days in month)
+        const estimatedPowerWatts = (device.consumption * 1000) / (defaultHoursPerDay * daysInMonth);
+        
+        // Then use the formula to calculate consumption
+        return sum + Math.round(estimatedPowerWatts * defaultHoursPerDay * daysInMonth / 1000);
+      }
+      return sum;
+    }, 0);
+    
+    // Daily consumption (rounded to integer)
+    const dailyConsumption = Math.round(totalMonthlyConsumption / daysInMonth);
+    
+    // 2. Peak consumption (18h-21h)
     const peakHours = [18, 19, 20]; // Peak hours 18h-21h
     const peakHourlyFactors = peakHours.map(hour => simulatedDataset.hourlyPatterns[hour]);
     const avgPeakFactor = peakHourlyFactors.reduce((sum, factor) => sum + factor, 0) / peakHourlyFactors.length;
-    const peakHoursConsumption = (dailyConsumption / 24) * 3 * avgPeakFactor * 1.2; // 3 hours with peak factor
+    const peakHoursConsumption = Math.round((dailyConsumption / 24) * 3 * avgPeakFactor * 1.2); // 3 hours with peak factor
     
     // Calculate average hourly consumption
     const currentHour = localDate.getHours();
     const hourlyPattern = simulatedDataset.hourlyPatterns[currentHour];
-    const averageConsumption = (dailyConsumption / 24) * hourlyPattern;
+    const averageConsumption = Math.round((dailyConsumption / 24) * hourlyPattern);
     
-    // 4. CUSTO ESTIMADO: Based on tariff bands
-    // Define tariffs based on consumption bands
+    // 4. Cost calculation based on tariff bands
     const tarifaVerde = 0.62;  // R$/kWh normal hours
     const tarifaAmarela = 0.72; // R$/kWh intermediate hours
     const tarifaVermelha = 0.85; // R$/kWh peak hours
@@ -45,12 +63,13 @@ export const energyMetricsService = {
     const amarelaHoursConsumption = totalMonthlyConsumption * 0.2; // 20% during yellow hours
     const vermelhaHoursConsumption = totalMonthlyConsumption * 0.15; // 15% during red hours
     
-    const estimatedMonthlyCost = 
+    const estimatedMonthlyCost = Math.round(
       (verdeHoursConsumption * tarifaVerde) + 
       (amarelaHoursConsumption * tarifaAmarela) + 
-      (vermelhaHoursConsumption * tarifaVermelha);
+      (vermelhaHoursConsumption * tarifaVermelha)
+    );
     
-    // 3. EFICIÊNCIA ENERGÉTICA: Calculate based on optimal vs. actual consumption
+    // 3. Energy efficiency calculation
     // Define benchmark optimal consumption values based on device types
     const optimalConsumptionByType: {[key: string]: number} = {
       tv: 30,
@@ -84,15 +103,15 @@ export const energyMetricsService = {
       efficiencyScore -= highConsumptionDevices.length * 3;
     }
     
-    // Ensure efficiency is between 0 and 100
-    const efficiency = Math.max(0, Math.min(100, efficiencyScore));
+    // Ensure efficiency is between 0 and 100 and round it
+    const efficiency = Math.round(Math.max(0, Math.min(100, efficiencyScore)));
 
     return {
-      dailyConsumption: parseFloat(dailyConsumption.toFixed(2)),
-      peakConsumption: parseFloat(peakHoursConsumption.toFixed(2)),
-      averageConsumption: parseFloat(averageConsumption.toFixed(2)),
-      estimatedMonthlyCost: parseFloat(estimatedMonthlyCost.toFixed(2)),
-      efficiency: Math.round(efficiency)
+      dailyConsumption: dailyConsumption,
+      peakConsumption: peakHoursConsumption,
+      averageConsumption: averageConsumption,
+      estimatedMonthlyCost: estimatedMonthlyCost,
+      efficiency: efficiency
     };
   },
 

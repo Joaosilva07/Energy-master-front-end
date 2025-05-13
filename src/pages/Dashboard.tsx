@@ -37,7 +37,7 @@ const Dashboard = () => {
   };
   
   // Calculate total consumption (sum of all device consumptions)
-  const totalConsumption = devices.reduce((sum, device) => sum + device.consumption, 0);
+  const totalConsumption = Math.round(devices.reduce((sum, device) => sum + device.consumption, 0));
   
   // Find active devices count
   const activeDevices = devices.filter(d => d.powerState).length;
@@ -67,32 +67,32 @@ const Dashboard = () => {
 
           {hasDevices ? (
             <>
-              {/* Energy Cards with improved metrics */}
+              {/* Energy Cards with improved metrics - rounded values */}
               <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <EnergyCard
                   title="Consumo Total"
-                  value={isAnalyzing ? '...' : Math.round(totalConsumption)}
+                  value={isAnalyzing ? '...' : totalConsumption}
                   unit="kWh"
                   percentageChange={consumptionChange}
                   icon={<LineChart className="h-5 w-5 text-energy-primary" />}
                 />
                 <EnergyCard
                   title="Consumo em Pico"
-                  value={isAnalyzing ? '...' : Math.round(metrics.peakConsumption)}
+                  value={isAnalyzing ? '...' : metrics.peakConsumption}
                   unit="kWh"
                   percentageChange={peakChange}
                   icon={<ActivitySquare className="h-5 w-5 text-amber-500" />}
                 />
                 <EnergyCard
                   title="Eficiência"
-                  value={isAnalyzing ? '...' : Math.round(metrics.efficiency)}
+                  value={isAnalyzing ? '...' : metrics.efficiency}
                   unit="%"
                   percentageChange={efficiencyChange}
                   icon={<Gauge className="h-5 w-5 text-green-500" />}
                 />
                 <EnergyCard
                   title="Custo Estimado"
-                  value={isAnalyzing ? '...' : Math.round(metrics.estimatedMonthlyCost)}
+                  value={isAnalyzing ? '...' : metrics.estimatedMonthlyCost}
                   unit="R$"
                   percentageChange={costChange}
                   icon={<ZapIcon className="h-5 w-5 text-blue-500" />}
