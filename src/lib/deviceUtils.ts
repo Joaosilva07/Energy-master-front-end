@@ -69,3 +69,47 @@ export const removeDeviceFromSupabase = async (id: string, userId: string) => {
     .eq('id', id)
     .eq('user_id', userId);
 };
+
+// Calculate device active time based on last activity
+export const calculateActiveTime = (device: Device): { hours: number, minutes: number } | null => {
+  if (!device.powerState) return null;
+  
+  // Convert lastActivity to actual time values
+  let hours = 0;
+  let minutes = 0;
+  
+  // If lastActivity is "Agora" (now), use random small values (1-15 minutes)
+  if (device.lastActivity === "Agora") {
+    minutes = Math.floor(Math.random() * 15) + 1;
+  } 
+  // If it has specific hour information, parse it
+  else if (device.lastActivity.includes("h")) {
+    // Extract hours from string like "2h atrás"
+    const match = device.lastActivity.match(/(\d+)h/);
+    if (match && match[1]) {
+      hours = parseInt(match[1]);
+      // Add some random minutes for realistic values
+      minutes = Math.floor(Math.random() * 60);
+    }
+  }
+  
+  return { hours, minutes };
+};
+
+// Calculate current consumption based on device specs and active time
+export const calculateCurrentConsumption = (device: Device, activeTime: { hours: number, minutes: number } | null): number | null => {
+  if (!device.powerState || !activeTime) return null;
+  
+  // Calculate hourly consumption rate (kWh)
+  // Monthly consumption divided by 30 days and 24 hours to get hourly rate
+  const hourlyConsumption = device.consumption / (30 * 24);
+  
+  // Calculate total hours of active time
+  const totalHours = activeTime.hours + (activeTime.minutes / 60);
+  
+  // Current consumption is hourly rate multiplied by active hours
+  const currentConsumption = hourlyConsumption * totalHours;
+  
+  // Return with 2 decimal places for readability
+  return parseFloat(currentConsumption.toFixed(2));
+};

@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Device } from '@/hooks/useDevices';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { calculateActiveTime, calculateCurrentConsumption } from '@/lib/deviceUtils';
 
 // Mapeamento de tipos de dispositivos para seus ícones
 export const deviceIcons = {
@@ -33,31 +34,11 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
 }) => {
   const icon = deviceIcons[device.type as DeviceIconsKey] || <Tv className="h-5 w-5" />;
   
-  // Calcula um tempo ativo aleatório para demonstração (em uma aplicação real, isso viria do backend)
-  const getActiveTime = () => {
-    if (!device.powerState) return null;
-    
-    const hours = Math.floor(Math.random() * 5) + 1;
-    const minutes = Math.floor(Math.random() * 60);
-    return { hours, minutes };
-  };
+  // Calculate active time using the utility function
+  const activeTime = calculateActiveTime(device);
   
-  const activeTime = getActiveTime();
-  
-  // Calcula o consumo estimado baseado no tempo ativo
-  const calculateEstimatedUsage = () => {
-    if (!activeTime || !device.powerState) return null;
-    
-    // Consumo mensal dividido por 30 dias e 24 horas para obter consumo por hora
-    const hourlyConsumption = device.consumption / (30 * 24);
-    
-    // Consumo baseado no tempo ativo
-    const consumption = hourlyConsumption * (activeTime.hours + activeTime.minutes / 60);
-    
-    return consumption.toFixed(2);
-  };
-  
-  const estimatedUsage = calculateEstimatedUsage();
+  // Calculate estimated usage based on active time
+  const estimatedUsage = calculateCurrentConsumption(device, activeTime);
   
   return (
     <Card>
@@ -141,11 +122,11 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tempo ativo</span>
                   <span className="font-medium text-green-600">
-                    {activeTime?.hours}h {activeTime?.minutes} min
+                    {activeTime ? `${activeTime.hours}h ${activeTime.minutes} min` : '-'}
                   </span>
                 </div>
               </div>
-              {estimatedUsage && (
+              {estimatedUsage !== null && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Consumo atual</span>
                   <span className="font-medium text-amber-600">
