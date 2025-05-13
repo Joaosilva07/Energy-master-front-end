@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/lib/supabase';
+import { useToast } from "@/components/ui/use-toast";
 
 // Goal interface to better type our data
 export interface Goal {
@@ -54,85 +56,284 @@ const initialGoals: Omit<Goal, 'userId'>[] = [
 
 export const useGoals = () => {
   const { user } = useUser();
+  const { toast } = useToast();
   const userId = user?.id || 'anonymous';
   
-  const [goals, setGoals] = useState<Goal[]>(() => {
-    const savedGoals = localStorage.getItem(`goals_${userId}`);
-    
-    if (savedGoals) {
-      return JSON.parse(savedGoals);
-    } else if (user) {
-      // If the user exists but has no goals, give them the initial set
-      const userGoals = initialGoals.map(goal => ({
-        ...goal,
-        userId
-      })) as Goal[];
-      return userGoals;
-    }
-    
-    return [];
-  });
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   
-  // Save goals to localStorage whenever they change
+  // Fetch goals from Supabase
   useEffect(() => {
-    if (userId) {
-      localStorage.setItem(`goals_${userId}`, JSON.stringify(goals));
+    if (!user) {
+      setGoals([]);
+      setIsLoading(false);
+      return;
     }
-  }, [goals, userId]);
+
+    async function fetchGoals() {
+      try {
+        setIsLoading(true);
+        
+        const { data, error } = await supabase
+          .from('goals')
+          .select('*')
+          .eq('user_id', userId);
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          // Map from Supabase format to our Goal format
+          const formattedGoals = data.map(goal => ({
+            id: goal.id,
+            title: goal.title,
+            description: goal.description,
+            progress: goal.progress,
+            status: goal.status,
+            statusColor: goal.statusColor,
+            iconType: goal.iconType,
+            iconBg: goal.iconBg,
+            target: goal.target,
+            targetDate: goal.targetDate,
+            type: goal.type,
+            userId: goal.user_id
+          }));
+          
+          setGoals(formattedGoals);
+        } else if (data && data.length === 0) {
+          // If user has no goals, create initial ones
+          await Promise.all(initialGoals.map(goal => 
+            addInitialGoal({...goal, userId})
+          ));
+          
+          // Then fetch them again
+          const { data: newData } = await supabase
+            .from('goals')
+            .select('*')
+            .eq('user_id', userId);
+            
+          if (newData) {
+            const formattedGoals = newData.map(goal => ({
+              id: goal.id,
+              title: goal.title,
+              description: goal.description,
+              progress: goal.progress,
+              status: goal.status,
+              statusColor: goal.statusColor,
+              iconType: goal.iconType,
+              iconBg: goal.iconBg,
+              target: goal.target,
+              targetDate: goal.targetDate,
+              type: goal.type,
+              userId: goal.user_id
+            }));
+            
+            setGoals(formattedGoals);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching goals:', err);
+        setError(err as Error);
+        
+        // Fallback to localStorage if Supabase fails
+        const savedGoals = localStorage.getItem(`goals_${userId}`);
+        if (savedGoals) {
+          setGoals(JSON.parse(savedGoals));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchGoals();
+  }, [userId, user]);
   
-  const addGoal = (newGoal: Omit<Goal, 'userId'>) => {
-    const goalWithUserId = {
-      ...newGoal,
-      userId
-    } as Goal;
-    
-    setGoals([...goals, goalWithUserId]);
+  // Helper function to add initial goals
+  const addInitialGoal = async (goal: Goal) => {
+    await supabase
+      .from('goals')
+      .insert([{
+        title: goal.title,
+        description: goal.description,
+        progress: goal.progress,
+        status: goal.status,
+        statusColor: goal.statusColor,
+        iconType: goal.iconType,
+        iconBg: goal.iconBg,
+        target: goal.target,
+        targetDate: goal.targetDate,
+        type: goal.type,
+        user_id: goal.userId
+      }]);
   };
   
-  const updateGoalProgress = (goalId: string, newProgress: number) => {
-    setGoals(goals.map(goal => 
-      goal.id === goalId 
-        ? { 
-            ...goal, 
-            progress: newProgress,
-            status: newProgress >= 100 
-                    ? "Concluído" 
-                    : newProgress > 75 
-                    ? "Quase Concluído" 
-                    : "Em Progresso",
-            statusColor: newProgress >= 100 
-                        ? "text-green-500" 
-                        : newProgress > 75
-                        ? "text-green-500" 
-                        : "text-yellow-500"
-          } 
-        : goal
-    ));
+  // Add a goal to Supabase
+  const addGoal = async (newGoal: Goal) => {
+    try {
+      const { data, error } = await supabase
+        .from('goals')
+        .insert([{
+          title: newGoal.title,
+          description: newGoal.description,
+          progress: newGoal.progress,
+          status: newGoal.status,
+          statusColor: newGoal.statusColor,
+          iconType: newGoal.iconType,
+          iconBg: newGoal.iconBg,
+          target: newGoal.target,
+          targetDate: newGoal.targetDate,
+          type: newGoal.type,
+          user_id: userId
+        }])
+        .select();
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data[0]) {
+        const formattedGoal = {
+          id: data[0].id,
+          title: data[0].title,
+          description: data[0].description,
+          progress: data[0].progress,
+          status: data[0].status,
+          statusColor: data[0].statusColor,
+          iconType: data[0].iconType,
+          iconBg: data[0].iconBg,
+          target: data[0].target,
+          targetDate: data[0].targetDate,
+          type: data[0].type,
+          userId: data[0].user_id
+        };
+        
+        setGoals(prev => [...prev, formattedGoal]);
+        
+        toast({
+          title: "Meta adicionada",
+          description: "A nova meta foi adicionada com sucesso.",
+        });
+      }
+    } catch (err) {
+      console.error('Error adding goal:', err);
+      toast({
+        title: "Erro ao adicionar meta",
+        description: "Ocorreu um erro ao adicionar a meta.",
+        variant: "destructive"
+      });
+    }
   };
   
-  const removeGoal = (goalId: string) => {
-    setGoals(goals.filter(goal => goal.id !== goalId));
+  // Update goal progress
+  const updateGoalProgress = async (goalId: string, newProgress: number) => {
+    try {
+      // Calculate new status based on progress
+      const newStatus = newProgress >= 100 
+        ? "Concluído" 
+        : newProgress > 75 
+        ? "Quase Concluído" 
+        : "Em Progresso";
+        
+      const newStatusColor = newProgress >= 100 
+        ? "text-green-500" 
+        : newProgress > 75
+        ? "text-green-500" 
+        : "text-yellow-500";
+      
+      // Update in Supabase
+      const { error } = await supabase
+        .from('goals')
+        .update({ 
+          progress: newProgress,
+          status: newStatus,
+          statusColor: newStatusColor
+        })
+        .eq('id', goalId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setGoals(goals.map(goal => 
+        goal.id === goalId 
+          ? { 
+              ...goal, 
+              progress: newProgress,
+              status: newStatus,
+              statusColor: newStatusColor
+            } 
+          : goal
+      ));
+      
+      toast({
+        title: "Progresso atualizado",
+        description: "O progresso da meta foi atualizado com sucesso.",
+      });
+    } catch (err) {
+      console.error('Error updating goal progress:', err);
+      toast({
+        title: "Erro ao atualizar progresso",
+        description: "Ocorreu um erro ao atualizar o progresso da meta.",
+        variant: "destructive"
+      });
+    }
   };
   
-  // Filter goals for the current user
-  const userGoals = goals.filter(goal => goal.userId === userId);
+  // Remove a goal
+  const removeGoal = async (goalId: string) => {
+    try {
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', goalId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      setGoals(goals.filter(goal => goal.id !== goalId));
+      
+      toast({
+        title: "Meta removida",
+        description: "A meta foi removida com sucesso.",
+        variant: "destructive"
+      });
+    } catch (err) {
+      console.error('Error removing goal:', err);
+      toast({
+        title: "Erro ao remover meta",
+        description: "Ocorreu um erro ao remover a meta.",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  // Calculate metrics
+  const completedGoalsCount = goals.filter(g => g.progress >= 100).length;
+  const recentlyCompletedCount = goals.filter(g => g.progress >= 100 && g.id.includes('new')).length;
+  const inProgressCount = goals.filter(g => g.progress < 100).length;
   
   // Calculate total progress for the main goal
-  const totalProgress = userGoals.length > 0
+  const totalProgress = goals.length > 0
     ? Math.min(
-        Math.round(userGoals.reduce((acc, goal) => acc + (goal.progress / userGoals.length), 0)),
+        Math.round(goals.reduce((acc, goal) => acc + (goal.progress / goals.length), 0)),
         100
       )
     : 0;
   
   return { 
-    goals: userGoals, 
+    goals, 
     addGoal, 
     updateGoalProgress, 
     removeGoal,
     totalProgress,
-    completedGoalsCount: userGoals.filter(g => g.progress >= 100).length,
-    recentlyCompletedCount: userGoals.filter(g => g.progress >= 100 && g.id.includes('new')).length,
-    inProgressCount: userGoals.filter(g => g.progress < 100).length
+    completedGoalsCount,
+    recentlyCompletedCount,
+    inProgressCount,
+    isLoading,
+    error
   };
 };

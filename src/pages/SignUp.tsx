@@ -4,44 +4,55 @@ import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
- const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
 
-  const userData = {
-    name,
-    email,
-    password,
-  };
+    try {
+      // Register user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        },
+      });
 
-  try {
-   const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
-    method: 'POST',
-    headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(userData),
-});
+      if (error) {
+        throw error;
+      }
 
-    if (!response.ok) {
-      throw new Error('Erro ao criar usuário');
+      toast({
+        title: 'Conta criada com sucesso!',
+        description: 'Você já pode fazer login com suas credenciais.',
+      });
+
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Erro durante o cadastro:', error);
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao criar conta',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = await response.json();
-    console.log('Usuário criado com sucesso:', data);
-
-    navigate('/login');
-  } catch (error) {
-    console.error('Erro durante o cadastro:', error);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -78,6 +89,7 @@ const SignUp = () => {
                     onChange={(e) => setName(e.target.value)}
                     required
                     className="pl-10"
+                    disabled={isLoading}
                   />
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 </div>
@@ -93,6 +105,7 @@ const SignUp = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="pl-10"
+                    disabled={isLoading}
                   />
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 </div>
@@ -108,12 +121,14 @@ const SignUp = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="pl-10 pr-10"
+                    disabled={isLoading}
                   />
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-gray-500" />
@@ -125,8 +140,12 @@ const SignUp = () => {
               </div>
             </div>
 
-            <Button type="submit" className="w-full bg-energy-primary">
-              Criar conta
+            <Button 
+              type="submit" 
+              className="w-full bg-energy-primary"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Criando conta...' : 'Criar conta'}
             </Button>
           </form>
         </div>

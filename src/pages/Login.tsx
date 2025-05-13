@@ -1,61 +1,64 @@
+
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { useUser } from '@/contexts/UserContext';
+import { supabase } from '@/lib/supabase';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { setUser } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, { email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (response.status === 200) {
-        const { token, user } = response.data;
+      if (error) {
+        throw error;
+      }
 
-        // Store authentication data
-        Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('user', JSON.stringify(user));
+      if (data.user) {
+        // Convert Supabase user to our User type
+        const userData = {
+          id: data.user.id,
+          email: data.user.email || '',
+          name: data.user.user_metadata.name || '',
+          role: data.user.role || 'user'
+        };
         
-        // Update user context
-        setUser(user);
-
+        setUser(userData);
+        
         toast({
           title: 'Login bem-sucedido!',
-          description: `Bem-vindo, ${user.name}!`,
+          description: `Bem-vindo, ${userData.name || userData.email}!`,
         });
 
         navigate('/');
       }
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);
-      if (error.response && error.response.status === 401) {
-        toast({
-          title: 'Erro',
-          description: 'Credenciais inválidas',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Erro',
-          description: 'Erro ao tentar fazer login',
-          variant: 'destructive',
-        });
-      }
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao tentar fazer login',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,12 +78,13 @@ const Login = () => {
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Input
-                    type="text"
+                    type="email"
                     placeholder="Coloque seu email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="pl-10"
+                    disabled={isLoading}
                   />
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 </div>
@@ -96,12 +100,14 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="pl-10 pr-10"
+                    disabled={isLoading}
                   />
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4 text-gray-500" />
@@ -125,13 +131,18 @@ const Login = () => {
                 variant="link"
                 className="text-sm text-energy-primary"
                 onClick={() => navigate('/forgot-password')}
+                disabled={isLoading}
               >
                 Esqueceu a senha?
               </Button>
             </div>
 
-            <Button type="submit" className="w-full bg-energy-primary">
-              Sign In
+            <Button 
+              type="submit" 
+              className="w-full bg-energy-primary"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </div>

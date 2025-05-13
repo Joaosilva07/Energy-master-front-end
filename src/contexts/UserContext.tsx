@@ -1,6 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { useToast } from "@/components/ui/use-toast";
 
 export interface User {
   id: string;
@@ -13,46 +16,90 @@ interface UserContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isLoading: boolean;
-  logout: () => void;
+  logout: () => Promise<void>;
+  session: Session | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Check if user is logged in when the app loads
   useEffect(() => {
-    const checkUserSession = async () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        const isAuthenticated = localStorage.getItem('isAuthenticated');
+    // Check for active session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      
+      if (session) {
+        // Convert Supabase user to our User type
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata.name || '',
+          role: session.user.role || 'user'
+        };
+        setUser(userData);
+      }
+      
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        setSession(newSession);
         
-        if (storedUser && isAuthenticated === 'true') {
-          setUser(JSON.parse(storedUser));
+        if (newSession) {
+          // Convert Supabase user to our User type
+          const userData: User = {
+            id: newSession.user.id,
+            email: newSession.user.email || '',
+            name: newSession.user.user_metadata.name || '',
+            role: newSession.user.role || 'user'
+          };
+          setUser(userData);
+        } else {
+          setUser(null);
         }
-      } catch (error) {
-        console.error('Error checking user session:', error);
-      } finally {
+        
         setIsLoading(false);
       }
-    };
+    );
 
-    checkUserSession();
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    setUser(null);
-    navigate('/login');
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      navigate('/login');
+      
+      toast({
+        title: "Logout bem-sucedido",
+        description: "Você foi desconectado com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error logging out:', error);
+      
+      toast({
+        title: "Erro ao sair",
+        description: "Ocorreu um erro ao tentar sair. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
-    <UserContext.Provider value={{ user, setUser, isLoading, logout }}>
+    <UserContext.Provider value={{ user, setUser, isLoading, logout, session }}>
       {children}
     </UserContext.Provider>
   );
