@@ -13,11 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
+import { Device } from '@/hooks/useDevices';
 
 interface AddDeviceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddDevice: (device: any) => void;
+  onAddDevice: (device: Device) => void;
 }
 
 const deviceTypes = [
@@ -40,10 +41,9 @@ const AddDeviceForm = ({ open, onOpenChange, onAddDevice }: AddDeviceFormProps) 
     e.preventDefault();
     
     const selectedDeviceType = deviceTypes.find(device => device.value === deviceType);
-    const newDevice = {
+    const newDevice: Device = {
       name: deviceName,
       type: deviceType,
-      typeName: selectedDeviceType?.label || deviceType,
       consumption: consumption ? parseInt(consumption) : selectedDeviceType?.avgConsumption || 0,
       location: location || 'Casa',
       status: 'online',
