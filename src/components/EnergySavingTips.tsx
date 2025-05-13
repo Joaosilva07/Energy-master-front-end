@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { energyInsightsService } from '@/services/energyInsightsService';
 import { useDevices } from '@/hooks/useDevices';
 import { supabase } from '@/lib/supabase';
-import { v4 as uuidv4 } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
 
 const EnergySavingTips = () => {
   const { toast } = useToast();
