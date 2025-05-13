@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -69,13 +68,20 @@ const Metas = () => {
     // This is a simple approach. You might want to enhance this based on your needs
     if (!iconComponent) return 'target';
     
-    // Check the type name in the React element
-    const iconElement = iconComponent as React.ReactElement;
-    const componentName = iconElement.type.displayName || iconElement.type.name;
-    
-    if (componentName?.includes('TrendingDown')) return 'trendingDown';
-    if (componentName?.includes('Trophy')) return 'trophy';
-    return 'target'; // Default
+    try {
+      // Check the type name in the React element
+      const iconElement = iconComponent as React.ReactElement;
+      if (typeof iconElement.type === 'function' || typeof iconElement.type === 'object') {
+        const typeAny = iconElement.type as any;
+        const componentName = typeAny.displayName || typeAny.name || '';
+        
+        if (componentName.includes('TrendingDown')) return 'trendingDown';
+        if (componentName.includes('Trophy')) return 'trophy';
+      }
+      return 'target'; // Default
+    } catch (error) {
+      return 'target'; // Fallback for any errors
+    }
   };
 
   const updateGoalProgress = (goalId: string, newProgress: number) => {
