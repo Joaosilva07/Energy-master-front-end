@@ -15,13 +15,13 @@ export const useEnergyAnalysis = () => {
     if (!isLoading && devices) {
       setIsAnalyzing(true);
       
-      // Simulate AI processing time
+      // Simulate AI processing time (as if we were querying an external dataset)
       const timer = setTimeout(() => {
-        // Run analysis
+        // Run enhanced analysis with simulated dataset integration
         const analysis = energyAnalysisService.analyzeConsumption(devices);
         setAnalysisData(analysis);
         
-        // Generate chart data
+        // Generate chart data with dataset-enhanced patterns
         setHourlyData(energyAnalysisService.generateHourlyData(devices));
         setDailyData(energyAnalysisService.generateDailyData(devices));
         setMonthlyData(energyAnalysisService.generateMonthlyData(devices));
