@@ -16,11 +16,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { Target, TrendingDown, Activity, Zap } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { Goal } from '@/hooks/useGoals';
 
 interface AddGoalFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddGoal: (goal: any) => void;
+  onAddGoal: (goal: Goal) => void;
 }
 
 const goalTypes = [
@@ -43,7 +44,7 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
     
     const selectedGoalType = goalTypes.find(type => type.value === goalType);
 
-    const newGoal = {
+    const newGoal: Goal = {
       id: 'new-' + Date.now().toString(),
       title,
       description,
@@ -53,7 +54,6 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
       targetDate,
       status: "Em Progresso",
       statusColor: "text-yellow-500",
-      icon: selectedGoalType?.icon || <Target className="h-5 w-5 text-energy-primary" />,
       iconType: selectedGoalType?.iconType || "target",
       iconBg: selectedGoalType?.bgColor || "bg-energy-primary/10"
     };
