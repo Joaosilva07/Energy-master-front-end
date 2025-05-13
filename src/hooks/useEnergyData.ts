@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Device } from '@/types/device.types';
 import { energyAnalysisService, EnergyAnalysis } from '@/services/energyAnalysisService';
 import { HourlyDataPoint, DailyDataPoint, MonthlyDataPoint } from '@/types/energyAnalysis.types';
@@ -13,9 +13,10 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [lastAnalysisTime, setLastAnalysisTime] = useState(new Date());
   const { toast } = useToast();
+  const refreshIntervalRef = useRef<number | null>(null);
 
-  // Function to perform energy analysis
-  const performAnalysis = () => {
+  // Function to perform energy analysis - optimized with useCallback
+  const performAnalysis = useCallback(() => {
     console.log("Realizando análise de energia com", devices?.length || 0, "dispositivos");
     
     if (!devices || devices.length === 0) {
@@ -29,17 +30,36 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
 
     setIsAnalyzing(true);
     
-    // Run enhanced analysis with current local time - with no artificial delay
+    // Run enhanced analysis with current local time
     const localDate = new Date();
     
     try {
-      // Generate chart data immediately without delays
+      // Generate analysis data
       const analysis = energyAnalysisService.analyzeConsumption(devices, localDate);
       setAnalysisData(analysis);
       
-      setHourlyData(energyAnalysisService.generateHourlyData(devices, localDate));
-      setDailyData(energyAnalysisService.generateDailyData(devices, localDate));
-      setMonthlyData(energyAnalysisService.generateMonthlyData(devices, localDate));
+      // Generate chart data - use cached data when possible
+      setHourlyData(prev => {
+        const newData = energyAnalysisService.generateHourlyData(devices, localDate);
+        // Only update if data has changed significantly
+        const hasChanged = !prev.length || 
+          prev.some((item, i) => Math.abs(item.consumption - (newData[i]?.consumption || 0)) > 0.5);
+        return hasChanged ? newData : prev;
+      });
+      
+      setDailyData(prev => {
+        const newData = energyAnalysisService.generateDailyData(devices, localDate);
+        const hasChanged = !prev.length || 
+          prev.some((item, i) => Math.abs(item.consumption - (newData[i]?.consumption || 0)) > 0.5);
+        return hasChanged ? newData : prev;
+      });
+      
+      setMonthlyData(prev => {
+        const newData = energyAnalysisService.generateMonthlyData(devices, localDate);
+        const hasChanged = !prev.length || 
+          prev.some((item, i) => Math.abs(item.consumption - (newData[i]?.consumption || 0)) > 0.5);
+        return hasChanged ? newData : prev;
+      });
       
       console.log("Análise de energia concluída com sucesso");
     } catch (error) {
@@ -48,31 +68,32 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
         title: "Erro na análise",
         description: "Ocorreu um problema ao analisar seus dados de consumo",
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setIsAnalyzing(false);
       setLastAnalysisTime(new Date());
     }
-  };
+  }, [devices, toast]);
 
   // Manually trigger analysis refresh
-  const refreshAnalysis = () => {
+  const refreshAnalysis = useCallback(() => {
     console.log("Atualizando análise de energia manualmente");
     performAnalysis();
     toast({
       title: "Análise atualizada",
       description: "Os dados de consumo foram atualizados",
+      duration: 2000,
     });
-  };
+  }, [performAnalysis, toast]);
 
   // Run analysis when devices change
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && devices.length > 0) {
       console.log("Dispositivos mudaram, atualizando análise...");
-      // Process data immediately without artificial delay
       performAnalysis();
     }
-  }, [devices, isLoading]);
+  }, [devices, isLoading, performAnalysis]);
 
   // Add loading timeout to prevent endless loading
   useEffect(() => {
@@ -82,31 +103,35 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
         if (isAnalyzing) {
           console.log("Timeout de análise atingido, finalizando estado de loading");
           setIsAnalyzing(false);
-          toast({
-            title: "Análise concluída",
-            description: "O processamento de dados demorou mais que o esperado",
-            variant: "default",
-          });
         }
-      }, 3000); // 3 seconds max loading time
+      }, 2000); // 2 seconds max loading time (reduced from 3 seconds)
       
       return () => clearTimeout(timeoutId);
     }
   }, [isAnalyzing]);
 
-  // Set up periodic refresh (every 10 minutes instead of 5 for less processing overhead)
+  // Set up periodic refresh (every hour instead of 10 minutes)
   useEffect(() => {
     console.log("Configurando refresh periódico da análise de energia");
-    const refreshInterval = setInterval(() => {
+    
+    // Clear any existing interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+    
+    // Set up a new hourly interval
+    refreshIntervalRef.current = window.setInterval(() => {
       console.log("Refresh automático da análise de energia");
       performAnalysis();
-    }, 10 * 60 * 1000); // Changed from 5 to 10 minutes
+    }, 60 * 60 * 1000); // Every hour
     
     return () => {
       console.log("Limpando intervalo de refresh da análise");
-      clearInterval(refreshInterval);
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
     };
-  }, [devices]);
+  }, [devices, performAnalysis]);
 
   return {
     analysisData,

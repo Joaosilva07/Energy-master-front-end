@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 
@@ -23,45 +23,37 @@ const Tab = ({ children, isActive, onClick }: TabProps) => (
 
 const EnergyConsumptionChart = () => {
   const [activeTab, setActiveTab] = useState('daily');
-  const [chartData, setChartData] = useState<Array<{time: string, consumption: number}>>([]);
-  const [average, setAverage] = useState(0);
   const { hourlyData, dailyData, monthlyData, isAnalyzing } = useEnergyAnalysis();
   
-  useEffect(() => {
-    // Format data based on selected time period
-    let data: any[] = [];
-    
+  // Use useMemo to prevent unnecessary recalculations
+  const chartData = useMemo(() => {
     switch (activeTab) {
       case 'daily':
-        data = hourlyData.map(item => ({ 
+        return hourlyData.map(item => ({ 
           time: item.hour, 
           consumption: item.consumption 
         }));
-        break;
       case 'weekly':
-        data = dailyData.map(item => ({ 
+        return dailyData.map(item => ({ 
           time: item.day, 
           consumption: item.consumption 
         }));
-        break;
       case 'monthly':
-        data = monthlyData.map(item => ({ 
+        return monthlyData.map(item => ({ 
           time: item.month, 
           consumption: item.consumption 
         }));
-        break;
       default:
-        data = [];
-    }
-    
-    setChartData(data);
-    
-    // Calculate average consumption
-    if (data.length > 0) {
-      const sum = data.reduce((acc, item) => acc + item.consumption, 0);
-      setAverage(Math.round(sum / data.length));
+        return [];
     }
   }, [activeTab, hourlyData, dailyData, monthlyData]);
+  
+  // Calculate average consumption with useMemo
+  const average = useMemo(() => {
+    if (chartData.length === 0) return 0;
+    const sum = chartData.reduce((acc, item) => acc + item.consumption, 0);
+    return Math.round(sum / chartData.length);
+  }, [chartData]);
 
   return (
     <div className="rounded-lg border bg-card p-5">
@@ -111,13 +103,15 @@ const EnergyConsumptionChart = () => {
                 tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
+                interval="preserveStartEnd"
+                minTickGap={5}
               />
               <YAxis
-                tickFormatter={(value) => `${value} kWh`}
+                tickFormatter={(value) => `${value}`}
                 tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
-                width={60}
+                width={40}
               />
               <Tooltip
                 formatter={(value) => [`${value} kWh`, 'Consumo']}
@@ -133,6 +127,12 @@ const EnergyConsumptionChart = () => {
                       return `${label}`;
                   }
                 }}
+                contentStyle={{ 
+                  backgroundColor: '#fff', 
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '4px',
+                  padding: '8px'
+                }}
               />
               <Area
                 type="monotone"
@@ -140,7 +140,8 @@ const EnergyConsumptionChart = () => {
                 stroke="#5AC4BE"
                 fillOpacity={1}
                 fill="url(#colorConsumption)"
-                animationDuration={500}
+                strokeWidth={2}
+                isAnimationActive={false} // Disable animation to reduce stuttering
               />
             </AreaChart>
           </ResponsiveContainer>

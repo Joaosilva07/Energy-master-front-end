@@ -8,14 +8,46 @@ import EnergyConsumptionChart from '@/components/EnergyConsumptionChart';
 import EnergySavingTips from '@/components/EnergySavingTips';
 import DeviceMonitoring from '@/components/DeviceMonitoring';
 import { useDevices } from '@/hooks/useDevices';
+import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 
 const Dashboard = () => {
   const { devices, isLoading } = useDevices();
+  const { analysisData, lastAnalysisTime, isAnalyzing } = useEnergyAnalysis();
   const [hasDevices, setHasDevices] = useState(false);
+  
+  // Format time for display
+  const formattedUpdateTime = lastAnalysisTime ? new Date(lastAnalysisTime).toLocaleDateString('pt-BR', {
+    day: '2-digit', 
+    month: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit'
+  }) : '';
   
   useEffect(() => {
     setHasDevices(devices && devices.length > 0);
   }, [devices]);
+
+  // Get metrics from analysis data or use defaults
+  const metrics = analysisData?.metrics || {
+    dailyConsumption: 0,
+    peakConsumption: 0,
+    averageConsumption: 0,
+    estimatedMonthlyCost: 0,
+    efficiency: 0
+  };
+  
+  // Calculate total consumption (sum of all device consumptions)
+  const totalConsumption = devices.reduce((sum, device) => sum + device.consumption, 0);
+  
+  // Find active devices count
+  const activeDevices = devices.filter(d => d.powerState).length;
+  
+  // Define percentage change values for metrics
+  // In a real app these would come from comparing with previous period data
+  const efficiencyChange = analysisData?.metrics ? 5.2 : 0; // Positive change in efficiency
+  const consumptionChange = analysisData?.metrics ? -3.5 : 0; // Negative change in consumption (good)
+  const peakChange = analysisData?.metrics ? -2.8 : 0; // Negative change in peak consumption (good)
+  const costChange = analysisData?.metrics ? -2.1 : 0; // Negative change in cost (good)
 
   return (
     <div className="flex h-screen bg-background">
@@ -26,43 +58,43 @@ const Dashboard = () => {
           <div className="mb-6">
             <h1 className="text-2xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">Acompanhe o consumo de energia da sua residência</p>
-            {hasDevices && (
+            {hasDevices && !isAnalyzing && (
               <div className="mt-1 text-xs text-muted-foreground text-right">
-                Última atualização: {new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'})}
+                Última atualização: {formattedUpdateTime}
               </div>
             )}
           </div>
 
           {hasDevices ? (
             <>
-              {/* Energy Cards */}
+              {/* Energy Cards with improved metrics */}
               <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <EnergyCard
                   title="Consumo Total"
-                  value={devices.reduce((sum, device) => sum + device.consumption, 0)}
+                  value={isAnalyzing ? '...' : Math.round(totalConsumption)}
                   unit="kWh"
-                  percentageChange={0}
+                  percentageChange={consumptionChange}
                   icon={<LineChart className="h-5 w-5 text-energy-primary" />}
                 />
                 <EnergyCard
                   title="Consumo em Pico"
-                  value={Math.round(devices.reduce((sum, device) => sum + device.consumption, 0) * 0.3)}
+                  value={isAnalyzing ? '...' : Math.round(metrics.peakConsumption)}
                   unit="kWh"
-                  percentageChange={0}
+                  percentageChange={peakChange}
                   icon={<ActivitySquare className="h-5 w-5 text-amber-500" />}
                 />
                 <EnergyCard
                   title="Eficiência"
-                  value={devices.length > 0 ? 70 : 0}
+                  value={isAnalyzing ? '...' : Math.round(metrics.efficiency)}
                   unit="%"
-                  percentageChange={0}
+                  percentageChange={efficiencyChange}
                   icon={<Gauge className="h-5 w-5 text-green-500" />}
                 />
                 <EnergyCard
                   title="Custo Estimado"
-                  value={Math.round(devices.reduce((sum, device) => sum + device.consumption, 0) * 0.7)}
+                  value={isAnalyzing ? '...' : Math.round(metrics.estimatedMonthlyCost)}
                   unit="R$"
-                  percentageChange={0}
+                  percentageChange={costChange}
                   icon={<ZapIcon className="h-5 w-5 text-blue-500" />}
                 />
               </div>

@@ -24,6 +24,7 @@ const EnergyCard = ({
 }: EnergyCardProps) => {
   const isPositiveChange = percentageChange > 0;
   const isNegativeChange = percentageChange < 0;
+  const hasChange = percentageChange !== 0;
   
   return (
     <div className={cn("rounded-lg border bg-card p-5", className)}>
@@ -32,22 +33,30 @@ const EnergyCard = ({
         {icon}
       </div>
       <div className="mt-3 flex items-baseline">
-        <h2 className="text-3xl font-bold">{value}</h2>
+        <h2 className="text-3xl font-bold">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</h2>
         {unit && <span className="ml-1 text-sm text-muted-foreground">{unit}</span>}
       </div>
       <div className="mt-2 flex items-center text-xs">
-        {isPositiveChange ? (
-          <ArrowUp className="mr-1 h-3 w-3 text-red-500" />
-        ) : isNegativeChange ? (
-          <ArrowDown className="mr-1 h-3 w-3 text-green-500" />
-        ) : null}
-        <span
-          className={cn(
-            isPositiveChange ? 'text-red-500' : isNegativeChange ? 'text-green-500' : 'text-muted-foreground'
-          )}
-        >
-          {Math.abs(percentageChange)}% comparado ao {comparePeriod}
-        </span>
+        {hasChange ? (
+          <>
+            {isPositiveChange ? (
+              <ArrowUp className={`mr-1 h-3 w-3 ${title.includes('Eficiência') ? 'text-green-500' : 'text-red-500'}`} />
+            ) : (
+              <ArrowDown className={`mr-1 h-3 w-3 ${title.includes('Eficiência') ? 'text-red-500' : 'text-green-500'}`} />
+            )}
+            <span
+              className={cn(
+                isPositiveChange 
+                  ? title.includes('Eficiência') ? 'text-green-500' : 'text-red-500' 
+                  : title.includes('Eficiência') ? 'text-red-500' : 'text-green-500'
+              )}
+            >
+              {Math.abs(percentageChange).toFixed(1)}% comparado ao {comparePeriod}
+            </span>
+          </>
+        ) : (
+          <span className="text-muted-foreground">Sem dados anteriores para comparação</span>
+        )}
       </div>
     </div>
   );
