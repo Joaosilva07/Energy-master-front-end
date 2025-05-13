@@ -1,4 +1,5 @@
 
+import { useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Device } from '@/types/device.types';
 import { useToast } from "@/components/ui/use-toast";
@@ -15,45 +16,63 @@ export const useAddDevice = (
   const { user } = useUser();
   const { toast } = useToast();
 
-  const addDevice = async (device: Device) => {
+  const addDevice = useCallback(async (device: Device) => {
     if (!user) return;
     
     try {
+      // Generate a local ID while waiting for the DB
+      const localId = `local_${Date.now()}`;
+      
       // Ensure device has the correct user ID
       const newDevice = {
         ...device,
-        userId: user.id
+        id: localId,
+        userId: user.id,
+        activatedAt: device.powerState ? new Date().toISOString() : null
       };
+      
+      // Update state first for immediate UI feedback
+      const updatedDevices = [...devices, newDevice];
+      setDevices(updatedDevices);
+      
+      // Show success message immediately
+      toast({
+        title: "Dispositivo adicionado",
+        description: `${device.name} foi adicionado com sucesso.`,
+        duration: 2000,
+      });
       
       // Try to insert into Supabase
       const { data, error } = await addDeviceToSupabase(newDevice);
-
+      
       if (error) {
         console.error('Error adding device to Supabase:', error);
         toast({
-          title: "Erro ao adicionar dispositivo",
-          description: "Não foi possível salvar no banco de dados, mas foi salvo localmente.",
+          title: "Erro ao salvar no banco",
+          description: "Dispositivo foi salvo apenas localmente.",
           variant: "destructive",
+          duration: 3000,
         });
         
-        // Fallback to localStorage
-        const updatedDevices = [...devices, newDevice];
-        setDevices(updatedDevices);
+        // Save to localStorage anyway
         saveDevicesToLocalStorage(user.id, updatedDevices);
       } else {
-        // If Supabase succeeds, add the returned device with its DB ID
+        // If Supabase succeeds, replace the local device with the returned one that has a proper DB ID
         const formattedDevice = formatDeviceFromSupabase(data);
         
-        const updatedDevices = [...devices, formattedDevice];
-        setDevices(updatedDevices);
+        setDevices(prevDevices => 
+          prevDevices.map(d => d.id === localId ? formattedDevice : d)
+        );
         
-        // Update localStorage backup
-        saveDevicesToLocalStorage(user.id, updatedDevices);
+        // Update localStorage backup with the correct DB ID
+        saveDevicesToLocalStorage(user.id, devices.map(d => 
+          d.id === localId ? formattedDevice : d
+        ));
       }
     } catch (err) {
       console.error('Failed to add device:', err);
     }
-  };
+  }, [devices, setDevices, toast, user]);
 
   return { addDevice };
 };

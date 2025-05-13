@@ -1,4 +1,5 @@
 
+import { useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Device } from '@/types/device.types';
 import { 
@@ -14,7 +15,7 @@ export const useToggleDevicePower = (
   const { user } = useUser();
   const { toast } = useToast();
 
-  const toggleDevicePower = async (id: string) => {
+  const toggleDevicePower = useCallback(async (id: string) => {
     if (!user) return;
 
     const deviceIndex = devices.findIndex(d => d.id === id);
@@ -49,7 +50,7 @@ export const useToggleDevicePower = (
     
     try {
       // Only include fields we're sure exist in the database schema
-      const updateData: Record<string, any> = { 
+      const updateData = { 
         powerState: updatedDevice.powerState,
         lastActivity: 'Agora',
         status: updatedDevice.status
@@ -67,7 +68,7 @@ export const useToggleDevicePower = (
       console.error('Failed to update device:', err);
       saveDevicesToLocalStorage(user.id, updatedDevices);
     }
-  };
+  }, [devices, setDevices, user, toast]);
 
   return { toggleDevicePower };
 };

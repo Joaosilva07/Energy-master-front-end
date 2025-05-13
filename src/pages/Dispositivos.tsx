@@ -37,10 +37,11 @@ const Dispositivos = () => {
     toast({
       title: "Dados atualizados",
       description: "Os dispositivos foram atualizados com sucesso",
+      duration: 2000, 
     });
   }, [fetchDevices, toast]);
 
-  // Set up auto-refresh
+  // Set up auto-refresh - with improved performance
   useEffect(() => {
     console.log("Montando componente Dispositivos, configurando refresh...");
     
@@ -50,12 +51,12 @@ const Dispositivos = () => {
     // Update the last update timestamp
     setLastUpdated(new Date());
     
-    // Set up periodic refresh
+    // Set up periodic refresh - reduced frequency for better performance
     const refreshInterval = setInterval(() => {
       console.log("Refresh automático dos dispositivos...");
       fetchDevices();
       setLastUpdated(new Date());
-    }, 30000); // 30 seconds
+    }, 60000); // Changed from 30s to 60s to reduce server load
     
     return () => {
       console.log("Desmontando componente Dispositivos, limpando interval");
@@ -63,7 +64,7 @@ const Dispositivos = () => {
     };
   }, [fetchDevices]);
 
-  // Handle device toggle with minimal delay
+  // Handle device toggle with ultra-minimal delay
   const handleToggleDevice = useCallback(async (deviceId: string) => {
     // Prevent rapid clicks, but with minimal delay
     if (isProcessingToggle) return;
@@ -88,8 +89,8 @@ const Dispositivos = () => {
         await toggleDevicePower(deviceId);
       }
     } finally {
-      // Release processing lock with minimal delay
-      setTimeout(() => setIsProcessingToggle(false), 100);
+      // Ultra-fast response by releasing the lock immediately
+      setIsProcessingToggle(false);
     }
   }, [devices, toggleDevicePower, cloudConnection, cloudEnabled, isProcessingToggle]);
 
@@ -100,9 +101,6 @@ const Dispositivos = () => {
       setCloudEnabled(true);
     }
   };
-
-  console.log("Dispositivos renderizando com", devices.length, "dispositivos", 
-              "Nuvem:", cloudConnection.isConnected ? "conectada" : "desconectada");
 
   return (
     <div className="flex h-screen bg-background">

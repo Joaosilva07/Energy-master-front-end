@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { Device } from '@/types/device.types';
 import { 
@@ -11,16 +11,12 @@ import {
 
 export const useFetchDevices = () => {
   const { user } = useUser();
-  const [devices, setDevices] = useState<Device[]>(() => {
-    // Inicializar do localStorage durante a montagem do componente
-    if (user) {
-      return loadDevicesFromLocalStorage(user.id);
-    }
-    return [];
-  });
+  const [devices, setDevices] = useState<Device[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const fetchDevices = async () => {
+  // Memoize fetchDevices function to prevent recreation on every render
+  const fetchDevices = useCallback(async () => {
     if (!user) {
       setDevices([]);
       setIsLoading(false);
@@ -56,26 +52,28 @@ export const useFetchDevices = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user]);
 
   // Load devices when component mounts or user changes
   useEffect(() => {
-    if (user) {
+    if (user && !isInitialized) {
       fetchDevices();
+      setIsInitialized(true);
     }
-  }, [user?.id]);
+  }, [user, fetchDevices, isInitialized]);
 
-  // Sempre que os dispositivos mudarem, salve no localStorage
-  useEffect(() => {
-    if (user && devices.length > 0) {
-      saveDevicesToLocalStorage(user.id, devices);
+  // Only save to localStorage when devices are explicitly changed, not on every render
+  const saveDevices = useCallback((updatedDevices: Device[]) => {
+    if (user) {
+      saveDevicesToLocalStorage(user.id, updatedDevices);
     }
-  }, [devices, user]);
+  }, [user]);
 
   return {
     devices,
     isLoading,
     fetchDevices,
-    setDevices
+    setDevices,
+    saveDevices
   };
 };

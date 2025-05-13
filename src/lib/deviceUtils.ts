@@ -7,11 +7,11 @@ export const formatDeviceFromSupabase = (item: any): Device => ({
   id: item.id,
   name: item.name,
   type: item.type,
-  consumption: item.consumption,
-  status: item.status,
-  lastActivity: item.lastActivity,
-  powerState: item.powerState,
-  location: item.location,
+  consumption: item.consumption || 0,
+  status: item.status || 'online',
+  lastActivity: item.lastActivity || 'Agora',
+  powerState: item.powerState !== undefined ? item.powerState : true,
+  location: item.location || 'Casa',
   userId: item.user_id,
   // Add timestamp for when device was turned on
   activatedAt: item.activatedAt || (item.powerState ? new Date().toISOString() : null)
@@ -19,13 +19,22 @@ export const formatDeviceFromSupabase = (item: any): Device => ({
 
 // Save devices to localStorage as backup
 export const saveDevicesToLocalStorage = (userId: string, devices: Device[]) => {
-  localStorage.setItem(`devices_${userId}`, JSON.stringify(devices));
+  try {
+    localStorage.setItem(`devices_${userId}`, JSON.stringify(devices));
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
 };
 
 // Load devices from localStorage
 export const loadDevicesFromLocalStorage = (userId: string): Device[] => {
-  const savedDevices = localStorage.getItem(`devices_${userId}`);
-  return savedDevices ? JSON.parse(savedDevices) : [];
+  try {
+    const savedDevices = localStorage.getItem(`devices_${userId}`);
+    return savedDevices ? JSON.parse(savedDevices) : [];
+  } catch (error) {
+    console.error('Error loading from localStorage:', error);
+    return [];
+  }
 };
 
 // Fetch devices from Supabase
@@ -37,15 +46,15 @@ export const fetchDevicesFromSupabase = async (userId: string) => {
 };
 
 // Add a device to Supabase
-export const addDeviceToSupabase = async (device: Omit<Device, 'id'>) => {
+export const addDeviceToSupabase = async (device: Omit<Device, 'id'> & { id?: string }) => {
   // Filter out any fields that might not exist in the database
   const deviceToAdd = {
     name: device.name,
     type: device.type,
-    consumption: device.consumption,
-    status: device.status,
-    lastActivity: device.lastActivity,
-    powerState: device.powerState,
+    consumption: device.consumption || 0,
+    status: device.status || 'online',
+    lastActivity: device.lastActivity || 'Agora',
+    powerState: device.powerState !== undefined ? device.powerState : true,
     location: device.location || 'Casa',
     user_id: device.userId
   };
@@ -59,11 +68,21 @@ export const addDeviceToSupabase = async (device: Omit<Device, 'id'>) => {
 
 // Update a device in Supabase
 export const updateDeviceInSupabase = async (id: string, userId: string, updates: Partial<Device>) => {
-  // We'll only send fields that we know exist in the database
-  // Instead of hardcoding fields that might not exist
+  // Convert user ID field name if present
+  const dbUpdates: Record<string, any> = {};
+  
+  // Map client-side fields to database field names
+  Object.entries(updates).forEach(([key, value]) => {
+    if (key === 'userId') {
+      dbUpdates.user_id = value;
+    } else {
+      dbUpdates[key] = value;
+    }
+  });
+
   return await supabase
     .from('devices')
-    .update(updates)
+    .update(dbUpdates)
     .eq('id', id)
     .eq('user_id', userId);
 };

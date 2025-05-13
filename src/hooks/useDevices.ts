@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useFetchDevices } from './useFetchDevices';
 import { useAddDevice } from './useAddDevice';
 import { useToggleDevicePower } from './useToggleDevicePower';
@@ -13,18 +13,20 @@ export type { Device };
 let globalDevices: Device[] = [];
 
 export const useDevices = () => {
-  const { devices, isLoading, fetchDevices, setDevices } = useFetchDevices();
+  const { devices, isLoading, fetchDevices, setDevices, saveDevices } = useFetchDevices();
   const { addDevice } = useAddDevice(devices, setDevices);
   const { toggleDevicePower } = useToggleDevicePower(devices, setDevices);
   const { removeDevice } = useRemoveDevice(devices, setDevices);
   const { toast } = useToast();
+  const [lastSaved, setLastSaved] = useState<number>(0);
 
-  // Atualiza os dispositivos globais quando os dispositivos locais mudarem
+  // Atualiza os dispositivos globais quando os dispositivos locais mudarem (menos frequentemente)
   useEffect(() => {
-    if (devices && devices.length > 0) {
+    if (devices && devices.length > 0 && lastSaved !== devices.length) {
       globalDevices = [...devices];
+      setLastSaved(devices.length);
     }
-  }, [devices]);
+  }, [devices.length, lastSaved]);
 
   // Recupera os dispositivos globais quando o componente monta
   useEffect(() => {
@@ -33,11 +35,17 @@ export const useDevices = () => {
     }
   }, []);
 
-  // Adiciona função para atualizar o status em tempo real
-  const updateDeviceStatus = (id: string, status: boolean) => {
+  // Adiciona função para atualizar o status em tempo real - com otimização
+  const updateDeviceStatus = useCallback((id: string, status: boolean) => {
     setDevices(prevDevices => {
       const updatedDevices = prevDevices.map(device => 
-        device.id === id ? {...device, powerState: status, lastActivity: 'Agora'} : device
+        device.id === id ? {
+          ...device, 
+          powerState: status, 
+          lastActivity: 'Agora',
+          activatedAt: status ? new Date().toISOString() : null,
+          status: status ? 'online' : 'offline'
+        } : device
       );
       
       // Atualiza também os dispositivos globais
@@ -49,9 +57,10 @@ export const useDevices = () => {
     // Notifica o usuário sobre a mudança de status
     toast({
       title: status ? "Dispositivo ligado" : "Dispositivo desligado",
-      description: `O dispositivo foi ${status ? "ligado" : "desligado"} com sucesso.`
+      description: `O dispositivo foi ${status ? "ligado" : "desligado"} com sucesso.`,
+      duration: 2000,
     });
-  };
+  }, [setDevices, toast]);
 
   return {
     devices,
