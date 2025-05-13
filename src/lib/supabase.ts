@@ -140,10 +140,6 @@ export const initializeDatabase = async () => {
         ('Mantenha janelas fechadas', 'Ao usar ar condicionado, verifique se janelas e portas estão bem vedadas.', 'lock', '20% no consumo de A/C', 'climatizacao', false);
       `;
       
-      // Execute the SQL script via REST API
-      // Note: This requires you to execute this SQL in the Supabase SQL Editor manually
-      // Supabase client doesn't have direct SQL execution for security reasons
-      
       console.log('You need to execute the SQL script in the Supabase SQL Editor manually.');
       return { success: false, message: 'Tables need to be created manually in Supabase SQL Editor.' };
     } else {
@@ -160,26 +156,6 @@ export const initializeDatabase = async () => {
 export type Database = {
   public: {
     Tables: {
-      users: {
-        Row: {
-          id: string;
-          name: string;
-          email: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          name: string;
-          email: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          name?: string;
-          email?: string;
-          created_at?: string;
-        };
-      };
       devices: {
         Row: {
           id: string;

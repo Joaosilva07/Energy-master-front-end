@@ -51,17 +51,13 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ error: 'E-mail ou senha inválidos' });
     }
 
-    res.status(200).json({ message: 'Login bem-sucedido', user: user[0] });
+    const token = jwt.sign({ id: user[0].id, email: user[0].email }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '1d' });
+
+    res.status(200).json({ message: 'Login bem-sucedido', token, user: user[0] });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro no servidor' });
   }
-
-  const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
-
-  res.status(200).json({ message: 'Login realizado com sucesso', token });
 };
 
-
-
-module.exports = { registerUser , loginUser };
+module.exports = { registerUser, loginUser };
