@@ -4,14 +4,17 @@ import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CalendarDays, TrendingUp, TrendingDown, AlertCircle, Fan, Radio, Tv, Laptop, Plus } from 'lucide-react';
+import { CalendarDays, TrendingUp, TrendingDown, AlertCircle, Fan, Radio, Tv, Laptop, Plus, Lightbulb } from 'lucide-react';
 import { useDevices } from '@/hooks/useDevices';
+import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import EnergyCard from '@/components/EnergyCard';
+import EnergyConsumptionChart from '@/components/EnergyConsumptionChart';
 
 const Consumo = () => {
   const { devices, isLoading } = useDevices();
+  const { analysisData, hourlyData, isAnalyzing } = useEnergyAnalysis();
   
   // Verifica se existem dispositivos cadastrados
   const hasDevices = devices.length > 0;
@@ -61,37 +64,40 @@ const Consumo = () => {
             <p className="text-muted-foreground">Análise detalhada do seu consumo energético</p>
           </div>
 
-          {isLoading ? (
+          {isLoading || isAnalyzing ? (
             <div className="flex items-center justify-center h-64">
-              <p className="text-muted-foreground">Carregando dados de consumo...</p>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-energy-primary mx-auto mb-2"></div>
+                <p className="text-muted-foreground">Processando dados de consumo...</p>
+              </div>
             </div>
           ) : (
             <>
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
                 <EnergyCard
                   title="Consumo Hoje"
-                  value={calculateDailyConsumption(devices)}
+                  value={analysisData?.metrics.dailyConsumption || 0}
                   unit="kWh"
                   percentageChange={0}
                   icon={<CalendarDays className="h-4 w-4" />}
                 />
                 <EnergyCard
                   title="Pico de Consumo"
-                  value={calculatePeakConsumption(devices)}
+                  value={analysisData?.metrics.peakConsumption || 0}
                   unit="kWh/h"
                   percentageChange={0}
                   icon={<TrendingUp className="h-4 w-4" />}
                 />
                 <EnergyCard
                   title="Consumo Médio"
-                  value={calculateAverageConsumption(devices)}
+                  value={analysisData?.metrics.averageConsumption || 0}
                   unit="kWh/h"
                   percentageChange={0}
                   icon={<TrendingDown className="h-4 w-4" />}
                 />
                 <EnergyCard
                   title="Dispositivos Ativos"
-                  value={getActiveDevicesCount(devices)}
+                  value={devices.filter(d => d.powerState).length}
                   percentageChange={0}
                   icon={<AlertCircle className="h-4 w-4" />}
                 />
@@ -104,11 +110,11 @@ const Consumo = () => {
                 <CardContent>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={generateHourlyData(devices)}>
+                      <LineChart data={hourlyData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="hour" />
                         <YAxis />
-                        <Tooltip />
+                        <Tooltip formatter={(value) => [`${value} kWh`, 'Consumo']} />
                         <Line 
                           type="monotone" 
                           dataKey="consumption" 
@@ -151,30 +157,52 @@ const Consumo = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Alertas Recentes</CardTitle>
+                    <CardTitle>Recomendações da IA</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {generateAlerts(devices).length > 0 ? (
+                    {analysisData && analysisData.recommendedActions.length > 0 ? (
                       <div className="space-y-4">
-                        {generateAlerts(devices).map((alert, index) => (
+                        {analysisData.recommendedActions.map((action, index) => (
                           <div key={index} className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
-                            <AlertCircle className={`h-5 w-5 ${alert.color}`} />
+                            <Lightbulb className="h-5 w-5 text-yellow-500" />
                             <div>
-                              <p className="font-medium">{alert.title}</p>
-                              <p className="text-sm text-muted-foreground">{alert.description}</p>
-                              <p className="text-xs text-muted-foreground mt-1">{alert.time}</p>
+                              <p className="text-sm">{action}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-muted-foreground">Nenhum alerta disponível</p>
+                        <p className="text-muted-foreground">Nenhuma recomendação disponível</p>
                       </div>
                     )}
                   </CardContent>
                 </Card>
               </div>
+
+              {analysisData && analysisData.insights.length > 0 && (
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Alertas Inteligentes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {analysisData.insights.map((insight, index) => (
+                        <div key={index} className="flex items-start gap-4 p-3 rounded-lg bg-muted/50">
+                          <AlertCircle className={`h-5 w-5 ${
+                            insight.type === 'warning' ? 'text-red-500' : 
+                            insight.type === 'success' ? 'text-green-500' : 'text-blue-500'
+                          }`} />
+                          <div>
+                            <p className="font-medium">{insight.title}</p>
+                            <p className="text-sm text-muted-foreground">{insight.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </>
           )}
         </main>
@@ -239,35 +267,7 @@ const generateDeviceDistribution = (devices) => {
   }).sort((a, b) => b.percentage - a.percentage).slice(0, 4); // Top 4 dispositivos
 };
 
-const generateAlerts = (devices) => {
-  const alerts = [];
-  
-  // Identifica dispositivos com alto consumo
-  const highConsumptionDevices = devices.filter(d => d.consumption > 100);
-  if (highConsumptionDevices.length > 0) {
-    alerts.push({
-      title: 'Consumo Elevado',
-      description: `${highConsumptionDevices[0].name} está com consumo acima da média.`,
-      time: 'Agora',
-      color: 'text-red-500'
-    });
-  }
-  
-  // Dispositivos ligados por muito tempo
-  const alwaysOnDevices = devices.filter(d => d.powerState && d.lastActivity !== 'Agora');
-  if (alwaysOnDevices.length > 0) {
-    alerts.push({
-      title: 'Dispositivo Inativo',
-      description: `${alwaysOnDevices[0].name} está ligado sem uso há algum tempo.`,
-      time: 'Há 2 horas',
-      color: 'text-yellow-500'
-    });
-  }
-  
-  return alerts;
-};
-
-// Função para pegar o ícone baseado no tipo do dispositivo
+// Function to get the icon based on device type
 const getDeviceIcon = (type) => {
   switch (type) {
     case 'tv':
