@@ -19,17 +19,17 @@ const Dispositivos = () => {
   const [isProcessingToggle, setIsProcessingToggle] = useState(false);
   const { toast } = useToast();
   
-  // Integração com a nuvem
+  // Cloud integration
   const cloudConnection = useCloudConnection(devices, {
     enabled: cloudEnabled,
-    refreshInterval: 60000, // 1 minuto
+    refreshInterval: 60000, // 1 minute
     onDeviceUpdate: (deviceId, newPowerState) => {
       console.log(`Atualizando dispositivo ${deviceId} para ${newPowerState ? "ligado" : "desligado"} via nuvem`);
       updateDeviceStatus(deviceId, newPowerState);
     }
   });
   
-  // Função para atualizar dados manualmente
+  // Manual refresh function
   const handleRefresh = useCallback(() => {
     console.log("Atualizando dispositivos manualmente...");
     fetchDevices();
@@ -40,7 +40,7 @@ const Dispositivos = () => {
     });
   }, [fetchDevices, toast]);
 
-  // Refresh data periodically (every 30 seconds)
+  // Set up auto-refresh
   useEffect(() => {
     console.log("Montando componente Dispositivos, configurando refresh...");
     
@@ -63,42 +63,39 @@ const Dispositivos = () => {
     };
   }, [fetchDevices]);
 
-  // Função para ligar/desligar dispositivo com integração à nuvem e prevenção de cliques rápidos
+  // Handle device toggle with debounce
   const handleToggleDevice = useCallback(async (deviceId: string) => {
-    // Prevenir múltiplos cliques rápidos
+    // Prevent rapid clicks
     if (isProcessingToggle) return;
     
     setIsProcessingToggle(true);
     
     try {
-      // Encontra o dispositivo
+      // If cloud is connected, try to use it
       const device = devices.find(d => d.id === deviceId);
       if (!device) return;
       
-      // Se a nuvem estiver habilitada, envia o comando pela nuvem
       if (cloudConnection.isConnected && cloudEnabled) {
         const newState = !device.powerState;
         const success = await cloudConnection.updateDeviceInCloud(deviceId, newState);
         
-        // Se o comando na nuvem foi bem-sucedido, o callback onDeviceUpdate já atualizará o estado
         if (!success) {
-          // Se falhou na nuvem, usa o método local como fallback
+          // Fallback to local toggle
           await toggleDevicePower(deviceId);
         }
       } else {
-        // Usa o método local
+        // Use local toggle
         await toggleDevicePower(deviceId);
       }
     } finally {
-      // Garantir que o processamento seja liberado após conclusão
+      // Release processing lock after a short delay
       setTimeout(() => setIsProcessingToggle(false), 500);
     }
   }, [devices, toggleDevicePower, cloudConnection, cloudEnabled, isProcessingToggle]);
 
-  // Quando a integração com Alexa for fechada
+  // Manage Alexa dialog state
   const handleAlexaDialogChange = (open: boolean) => {
     setIsAlexaOpen(open);
-    // Se o diálogo foi fechado e a conexão estava ativa, mantém cloudEnabled
     if (!open && cloudConnection.isConnected) {
       setCloudEnabled(true);
     }

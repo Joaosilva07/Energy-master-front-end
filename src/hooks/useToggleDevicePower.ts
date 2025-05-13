@@ -20,10 +20,12 @@ export const useToggleDevicePower = (
     const deviceIndex = devices.findIndex(d => d.id === id);
     if (deviceIndex === -1) return;
     
-    const newPowerState = !devices[deviceIndex].powerState;
+    // Get current state and toggle it
+    const currentDevice = devices[deviceIndex];
+    const newPowerState = !currentDevice.powerState;
     
     const updatedDevice = {
-      ...devices[deviceIndex],
+      ...currentDevice,
       powerState: newPowerState,
       lastActivity: 'Agora',
       // Update activation timestamp when turning on

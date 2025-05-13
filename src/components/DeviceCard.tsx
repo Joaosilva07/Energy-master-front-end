@@ -7,7 +7,7 @@ import { Device } from '@/types/device.types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { calculateActiveTime, calculateCurrentConsumption } from '@/lib/deviceUtils';
 
-// Mapeamento de tipos de dispositivos para seus ícones
+// Device icon mapping
 export const deviceIcons = {
   tv: <Tv className="h-5 w-5" />,
   refrigerator: <Radio className="h-5 w-5" />,
@@ -40,7 +40,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
   // Calculate estimated usage based on active time
   const estimatedUsage = calculateCurrentConsumption(device, activeTime);
 
-  // Prevent multiple rapid clicks
+  // Handle power button click
   const handlePowerToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
