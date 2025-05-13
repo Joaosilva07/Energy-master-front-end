@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -14,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Device } from '@/hooks/useDevices';
+import { useUser } from '@/contexts/UserContext';
 
 interface AddDeviceFormProps {
   open: boolean;
@@ -32,6 +32,7 @@ const deviceTypes = [
 
 const AddDeviceForm = ({ open, onOpenChange, onAddDevice }: AddDeviceFormProps) => {
   const { toast } = useToast();
+  const { user } = useUser();
   const [deviceName, setDeviceName] = useState('');
   const [deviceType, setDeviceType] = useState('');
   const [consumption, setConsumption] = useState('');
@@ -41,6 +42,8 @@ const AddDeviceForm = ({ open, onOpenChange, onAddDevice }: AddDeviceFormProps) 
     e.preventDefault();
     
     const selectedDeviceType = deviceTypes.find(device => device.value === deviceType);
+    const userId = user?.id || 'anonymous';
+    
     const newDevice: Device = {
       name: deviceName,
       type: deviceType,
@@ -50,6 +53,7 @@ const AddDeviceForm = ({ open, onOpenChange, onAddDevice }: AddDeviceFormProps) 
       lastActivity: 'Agora',
       powerState: true,
       id: Date.now().toString(),
+      userId: userId,
     };
     
     onAddDevice(newDevice);

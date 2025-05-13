@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -17,6 +16,7 @@ import { Target, TrendingDown, Activity, Zap } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Goal } from '@/hooks/useGoals';
+import { useUser } from '@/contexts/UserContext';
 
 interface AddGoalFormProps {
   open: boolean;
@@ -33,6 +33,7 @@ const goalTypes = [
 
 const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
   const { toast } = useToast();
+  const { user } = useUser();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [goalType, setGoalType] = useState('');
@@ -43,6 +44,7 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
     e.preventDefault();
     
     const selectedGoalType = goalTypes.find(type => type.value === goalType);
+    const userId = user?.id || 'anonymous';
 
     const newGoal: Goal = {
       id: 'new-' + Date.now().toString(),
@@ -55,7 +57,8 @@ const AddGoalForm = ({ open, onOpenChange, onAddGoal }: AddGoalFormProps) => {
       status: "Em Progresso",
       statusColor: "text-yellow-500",
       iconType: selectedGoalType?.iconType || "target",
-      iconBg: selectedGoalType?.bgColor || "bg-energy-primary/10"
+      iconBg: selectedGoalType?.bgColor || "bg-energy-primary/10",
+      userId: userId
     };
     
     onAddGoal(newGoal);
