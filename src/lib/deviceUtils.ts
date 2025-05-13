@@ -12,7 +12,9 @@ export const formatDeviceFromSupabase = (item: any): Device => ({
   lastActivity: item.lastActivity,
   powerState: item.powerState,
   location: item.location,
-  userId: item.user_id
+  userId: item.user_id,
+  // Add timestamp for when device was turned on
+  activatedAt: item.activatedAt || (item.powerState ? new Date().toISOString() : null)
 });
 
 // Save devices to localStorage as backup
@@ -46,7 +48,8 @@ export const addDeviceToSupabase = async (device: Omit<Device, 'id'>) => {
       lastActivity: device.lastActivity,
       powerState: device.powerState,
       location: device.location || 'Casa',
-      user_id: device.userId
+      user_id: device.userId,
+      activatedAt: device.powerState ? new Date().toISOString() : null
     })
     .select('*')
     .single();
@@ -54,9 +57,17 @@ export const addDeviceToSupabase = async (device: Omit<Device, 'id'>) => {
 
 // Update a device in Supabase
 export const updateDeviceInSupabase = async (id: string, userId: string, updates: Partial<Device>) => {
+  // If turning the device on, add the activation timestamp
+  const updatesToSubmit = { ...updates };
+  if (updates.powerState === true) {
+    updatesToSubmit.activatedAt = new Date().toISOString();
+  } else if (updates.powerState === false) {
+    updatesToSubmit.activatedAt = null;
+  }
+  
   return await supabase
     .from('devices')
-    .update(updates)
+    .update(updatesToSubmit)
     .eq('id', id)
     .eq('user_id', userId);
 };
@@ -70,33 +81,25 @@ export const removeDeviceFromSupabase = async (id: string, userId: string) => {
     .eq('user_id', userId);
 };
 
-// Calculate device active time based on last activity
+// Calculate device active time based on the activation timestamp
 export const calculateActiveTime = (device: Device): { hours: number, minutes: number } | null => {
-  if (!device.powerState) return null;
+  // If device is not powered on or doesn't have an activation timestamp, return null
+  if (!device.powerState || !device.activatedAt) return null;
   
-  // Convert lastActivity to actual time values
-  let hours = 0;
-  let minutes = 0;
+  // Calculate the difference between now and when the device was turned on
+  const now = new Date();
+  const activatedAt = new Date(device.activatedAt);
+  const diffInMs = now.getTime() - activatedAt.getTime();
   
-  // If lastActivity is "Agora" (now), use random small values (1-15 minutes)
-  if (device.lastActivity === "Agora") {
-    minutes = Math.floor(Math.random() * 15) + 1;
-  } 
-  // If it has specific hour information, parse it
-  else if (device.lastActivity.includes("h")) {
-    // Extract hours from string like "2h atrás"
-    const match = device.lastActivity.match(/(\d+)h/);
-    if (match && match[1]) {
-      hours = parseInt(match[1]);
-      // Add some random minutes for realistic values
-      minutes = Math.floor(Math.random() * 60);
-    }
-  }
+  // Convert milliseconds to hours and minutes
+  const totalMinutes = Math.floor(diffInMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   
   return { hours, minutes };
 };
 
-// Calculate current consumption based on device specs and active time
+// Calculate current consumption based on device specs and actual active time
 export const calculateCurrentConsumption = (device: Device, activeTime: { hours: number, minutes: number } | null): number | null => {
   if (!device.powerState || !activeTime) return null;
   

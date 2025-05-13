@@ -20,12 +20,16 @@ export const useToggleDevicePower = (
     const deviceIndex = devices.findIndex(d => d.id === id);
     if (deviceIndex === -1) return;
     
+    const newPowerState = !devices[deviceIndex].powerState;
+    
     const updatedDevice = {
       ...devices[deviceIndex],
-      powerState: !devices[deviceIndex].powerState,
+      powerState: newPowerState,
       lastActivity: 'Agora',
-      // Atualizando o status para refletir a mudança de energia
-      status: !devices[deviceIndex].powerState ? 'online' : 'offline'
+      // Update activation timestamp when turning on
+      activatedAt: newPowerState ? new Date().toISOString() : null,
+      // Updating status to reflect power change
+      status: newPowerState ? 'online' : 'offline'
     };
     
     const updatedDevices = [...devices];
@@ -44,7 +48,8 @@ export const useToggleDevicePower = (
       const { error } = await updateDeviceInSupabase(id, user.id, { 
         powerState: updatedDevice.powerState,
         lastActivity: 'Agora',
-        status: updatedDevice.status
+        status: updatedDevice.status,
+        activatedAt: updatedDevice.activatedAt
       });
 
       if (error) {

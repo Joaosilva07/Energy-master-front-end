@@ -10,4 +10,5 @@ export interface Device {
   powerState: boolean;
   location?: string;
   userId: string;
+  activatedAt?: string | null;
 }
