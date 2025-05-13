@@ -78,7 +78,7 @@ const Login = () => {
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Input
-                    type="email"
+                    type="text"
                     placeholder="Coloque seu email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

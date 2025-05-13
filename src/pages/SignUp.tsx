@@ -29,6 +29,7 @@ const SignUp = () => {
           data: {
             name,
           },
+          emailRedirectTo: window.location.origin,
         },
       });
 
@@ -99,7 +100,7 @@ const SignUp = () => {
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Input
-                    type="email"
+                    type="text"
                     placeholder="coloque seu email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
