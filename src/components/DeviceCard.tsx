@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Tv, Laptop, Fan, Radio, Power, Trash2 } from 'lucide-react';
+import { Tv, Laptop, Fan, Radio, Power, Trash2, CloudOff, Cloud } from 'lucide-react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Device } from '@/hooks/useDevices';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mapeamento de tipos de dispositivos para seus ícones
 export const deviceIcons = {
@@ -47,6 +48,25 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onTogglePower, onRemove
             </div>
           </div>
           <div className="flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="h-8 w-8 rounded-full border-none"
+                  >
+                    {device.status === 'online' ? 
+                      <Cloud className="h-4 w-4 text-green-500" /> : 
+                      <CloudOff className="h-4 w-4 text-gray-400" />
+                    }
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{device.status === 'online' ? 'Monitoramento ativo' : 'Sem monitoramento'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button 
               variant="ghost" 
               size="icon" 
@@ -79,6 +99,16 @@ const DeviceCard: React.FC<DeviceCardProps> = ({ device, onTogglePower, onRemove
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Local</span>
               <span>{device.location}</span>
+            </div>
+          )}
+          {device.powerState && (
+            <div className="mt-3 pt-2 border-t border-gray-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Tempo ativo</span>
+                <span className="font-medium text-green-600">
+                  {Math.floor(Math.random() * 5) + 1}h {Math.floor(Math.random() * 60)} min
+                </span>
+              </div>
             </div>
           )}
         </div>

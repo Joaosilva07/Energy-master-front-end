@@ -5,12 +5,14 @@ import {
   updateDeviceInSupabase, 
   saveDevicesToLocalStorage 
 } from '@/lib/deviceUtils';
+import { useToast } from "@/components/ui/use-toast";
 
 export const useToggleDevicePower = (
   devices: Device[], 
   setDevices: React.Dispatch<React.SetStateAction<Device[]>>
 ) => {
   const { user } = useUser();
+  const { toast } = useToast();
 
   const toggleDevicePower = async (id: string) => {
     if (!user) return;
@@ -21,7 +23,9 @@ export const useToggleDevicePower = (
     const updatedDevice = {
       ...devices[deviceIndex],
       powerState: !devices[deviceIndex].powerState,
-      lastActivity: 'Agora'
+      lastActivity: 'Agora',
+      // Atualizando o status para refletir a mudança de energia
+      status: !devices[deviceIndex].powerState ? 'online' : 'offline'
     };
     
     const updatedDevices = [...devices];
@@ -30,11 +34,17 @@ export const useToggleDevicePower = (
     // Update state first for immediate UI feedback
     setDevices(updatedDevices);
     
+    toast({
+      title: updatedDevice.powerState ? "Dispositivo ligado" : "Dispositivo desligado",
+      description: `${updatedDevice.name} foi ${updatedDevice.powerState ? 'ligado' : 'desligado'} com sucesso.`,
+    });
+    
     try {
       // Update in Supabase
       const { error } = await updateDeviceInSupabase(id, user.id, { 
         powerState: updatedDevice.powerState,
-        lastActivity: 'Agora'
+        lastActivity: 'Agora',
+        status: updatedDevice.status
       });
 
       if (error) {
