@@ -62,11 +62,38 @@ export const useGoals = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [tableExists, setTableExists] = useState<boolean>(true);
+  
+  // Check if goals table exists
+  useEffect(() => {
+    async function checkTable() {
+      if (!user) return;
+      
+      try {
+        await supabase.from('goals').select('count', { count: 'exact', head: true });
+        setTableExists(true);
+      } catch (error: any) {
+        if (error.message && error.message.includes('does not exist')) {
+          console.log('Goals table does not exist yet');
+          setTableExists(false);
+          
+          // Set local fallback goals
+          const fallbackGoals = initialGoals.map(goal => ({ 
+            ...goal, 
+            userId 
+          }));
+          setGoals(fallbackGoals);
+          setIsLoading(false);
+        }
+      }
+    }
+    
+    checkTable();
+  }, [user, userId]);
   
   // Fetch goals from Supabase
   useEffect(() => {
-    if (!user) {
-      setGoals([]);
+    if (!user || !tableExists) {
       setIsLoading(false);
       return;
     }
@@ -102,45 +129,54 @@ export const useGoals = () => {
           }));
           
           setGoals(formattedGoals);
-        } else if (data && data.length === 0) {
-          // If user has no goals, create initial ones
-          await Promise.all(initialGoals.map(goal => 
-            addInitialGoal({...goal, userId})
-          ));
           
-          // Then fetch them again
-          const { data: newData } = await supabase
-            .from('goals')
-            .select('*')
-            .eq('user_id', userId);
+          // If user has no goals, create initial ones
+          if (formattedGoals.length === 0) {
+            await Promise.all(initialGoals.map(goal => 
+              addInitialGoal({...goal, userId})
+            ));
             
-          if (newData) {
-            const formattedGoals = newData.map(goal => ({
-              id: goal.id,
-              title: goal.title,
-              description: goal.description,
-              progress: goal.progress,
-              status: goal.status,
-              statusColor: goal.statusColor,
-              iconType: goal.iconType,
-              iconBg: goal.iconBg,
-              target: goal.target,
-              targetDate: goal.targetDate,
-              type: goal.type,
-              userId: goal.user_id
-            }));
-            
-            setGoals(formattedGoals);
+            // Then fetch them again
+            const { data: newData } = await supabase
+              .from('goals')
+              .select('*')
+              .eq('user_id', userId);
+              
+            if (newData) {
+              const newFormattedGoals = newData.map(goal => ({
+                id: goal.id,
+                title: goal.title,
+                description: goal.description,
+                progress: goal.progress,
+                status: goal.status,
+                statusColor: goal.statusColor,
+                iconType: goal.iconType,
+                iconBg: goal.iconBg,
+                target: goal.target,
+                targetDate: goal.targetDate,
+                type: goal.type,
+                userId: goal.user_id
+              }));
+              
+              setGoals(newFormattedGoals);
+            }
           }
         }
       } catch (err) {
         console.error('Error fetching goals:', err);
         setError(err as Error);
         
-        // Fallback to localStorage if Supabase fails
+        // Fallback to localStorage or initial data if Supabase fails
         const savedGoals = localStorage.getItem(`goals_${userId}`);
         if (savedGoals) {
           setGoals(JSON.parse(savedGoals));
+        } else {
+          // Use initial goals as fallback
+          const fallbackGoals = initialGoals.map(goal => ({ 
+            ...goal, 
+            userId 
+          }));
+          setGoals(fallbackGoals);
         }
       } finally {
         setIsLoading(false);
@@ -148,30 +184,47 @@ export const useGoals = () => {
     }
 
     fetchGoals();
-  }, [userId, user]);
+  }, [userId, user, tableExists, toast]);
   
   // Helper function to add initial goals
   const addInitialGoal = async (goal: Goal) => {
-    await supabase
-      .from('goals')
-      .insert([{
-        title: goal.title,
-        description: goal.description,
-        progress: goal.progress,
-        status: goal.status,
-        statusColor: goal.statusColor,
-        iconType: goal.iconType,
-        iconBg: goal.iconBg,
-        target: goal.target,
-        targetDate: goal.targetDate,
-        type: goal.type,
-        user_id: goal.userId
-      }]);
+    if (!tableExists) return;
+    
+    try {
+      await supabase
+        .from('goals')
+        .insert([{
+          title: goal.title,
+          description: goal.description,
+          progress: goal.progress,
+          status: goal.status,
+          statusColor: goal.statusColor,
+          iconType: goal.iconType,
+          iconBg: goal.iconBg,
+          target: goal.target,
+          targetDate: goal.targetDate,
+          type: goal.type,
+          user_id: goal.userId
+        }]);
+    } catch (error) {
+      console.error('Error adding initial goal:', error);
+    }
   };
   
   // Add a goal to Supabase
   const addGoal = async (newGoal: Goal) => {
     try {
+      if (!tableExists) {
+        // Just add to local state if table doesn't exist
+        setGoals(prev => [...prev, newGoal]);
+        
+        toast({
+          title: "Meta adicionada (modo local)",
+          description: "A meta foi adicionada localmente. Configure o banco de dados para persistência.",
+        });
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('goals')
         .insert([{
@@ -242,18 +295,20 @@ export const useGoals = () => {
         ? "text-green-500" 
         : "text-yellow-500";
       
-      // Update in Supabase
-      const { error } = await supabase
-        .from('goals')
-        .update({ 
-          progress: newProgress,
-          status: newStatus,
-          statusColor: newStatusColor
-        })
-        .eq('id', goalId);
-        
-      if (error) {
-        throw error;
+      if (tableExists) {
+        // Update in Supabase
+        const { error } = await supabase
+          .from('goals')
+          .update({ 
+            progress: newProgress,
+            status: newStatus,
+            statusColor: newStatusColor
+          })
+          .eq('id', goalId);
+          
+        if (error) {
+          throw error;
+        }
       }
       
       // Update local state
@@ -285,13 +340,15 @@ export const useGoals = () => {
   // Remove a goal
   const removeGoal = async (goalId: string) => {
     try {
-      const { error } = await supabase
-        .from('goals')
-        .delete()
-        .eq('id', goalId);
-        
-      if (error) {
-        throw error;
+      if (tableExists) {
+        const { error } = await supabase
+          .from('goals')
+          .delete()
+          .eq('id', goalId);
+          
+        if (error) {
+          throw error;
+        }
       }
       
       setGoals(goals.filter(goal => goal.id !== goalId));
