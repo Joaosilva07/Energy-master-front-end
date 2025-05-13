@@ -7,9 +7,15 @@ interface DeviceListProps {
   devices: Device[];
   onTogglePower: (id: string) => void;
   onRemove: (id: string) => void;
+  cloudConnected?: boolean;
 }
 
-const DeviceList: React.FC<DeviceListProps> = ({ devices, onTogglePower, onRemove }) => {
+const DeviceList: React.FC<DeviceListProps> = ({ 
+  devices, 
+  onTogglePower, 
+  onRemove,
+  cloudConnected = false
+}) => {
   if (devices.length === 0) {
     return (
       <div className="text-center py-10">
@@ -26,6 +32,7 @@ const DeviceList: React.FC<DeviceListProps> = ({ devices, onTogglePower, onRemov
           device={device} 
           onTogglePower={onTogglePower}
           onRemove={onRemove}
+          cloudConnected={cloudConnected}
         />
       ))}
     </div>

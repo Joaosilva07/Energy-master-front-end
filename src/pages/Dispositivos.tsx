@@ -10,13 +10,25 @@ import { useDevices } from '@/hooks/useDevices';
 import DeviceList from '@/components/DeviceList';
 import { useToast } from '@/components/ui/use-toast';
 import AlexaIntegration from '@/components/AlexaIntegration';
+import { useCloudConnection } from '@/hooks/useCloudConnection';
 
 const Dispositivos = () => {
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
   const [isAlexaOpen, setIsAlexaOpen] = useState(false);
-  const { devices, addDevice, toggleDevicePower, removeDevice, fetchDevices } = useDevices();
+  const [cloudEnabled, setCloudEnabled] = useState(false);
+  const { devices, addDevice, toggleDevicePower, removeDevice, fetchDevices, updateDeviceStatus } = useDevices();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const { toast } = useToast();
+  
+  // Integração com a nuvem
+  const cloudConnection = useCloudConnection(devices, {
+    enabled: cloudEnabled,
+    refreshInterval: 60000, // 1 minuto
+    onDeviceUpdate: (deviceId, newPowerState) => {
+      console.log(`Atualizando dispositivo ${deviceId} para ${newPowerState ? "ligado" : "desligado"} via nuvem`);
+      updateDeviceStatus(deviceId, newPowerState);
+    }
+  });
   
   // Função para atualizar dados manualmente
   const handleRefresh = useCallback(() => {
@@ -52,7 +64,39 @@ const Dispositivos = () => {
     };
   }, [fetchDevices]);
 
-  console.log("Dispositivos renderizando com", devices.length, "dispositivos");
+  // Função para ligar/desligar dispositivo com integração à nuvem
+  const handleToggleDevice = useCallback(async (deviceId: string) => {
+    // Encontra o dispositivo
+    const device = devices.find(d => d.id === deviceId);
+    if (!device) return;
+    
+    // Se a nuvem estiver habilitada, envia o comando pela nuvem
+    if (cloudConnection.isConnected && cloudEnabled) {
+      const newState = !device.powerState;
+      const success = await cloudConnection.updateDeviceInCloud(deviceId, newState);
+      
+      // Se o comando na nuvem foi bem-sucedido, o callback onDeviceUpdate já atualizará o estado
+      if (!success) {
+        // Se falhou na nuvem, usa o método local como fallback
+        toggleDevicePower(deviceId);
+      }
+    } else {
+      // Usa o método local
+      toggleDevicePower(deviceId);
+    }
+  }, [devices, toggleDevicePower, cloudConnection, cloudEnabled]);
+
+  // Quando a integração com Alexa for fechada
+  const handleAlexaDialogChange = (open: boolean) => {
+    setIsAlexaOpen(open);
+    // Se o diálogo foi fechado e a conexão estava ativa, mantém cloudEnabled
+    if (!open && cloudConnection.isConnected) {
+      setCloudEnabled(true);
+    }
+  };
+
+  console.log("Dispositivos renderizando com", devices.length, "dispositivos", 
+              "Nuvem:", cloudConnection.isConnected ? "conectada" : "desconectada");
 
   return (
     <div className="flex h-screen bg-background">
@@ -81,11 +125,14 @@ const Dispositivos = () => {
                   Atualizar
                 </Button>
                 <Button 
-                  variant="outline"
+                  variant={cloudConnection.isConnected ? "secondary" : "outline"}
                   onClick={() => setIsAlexaOpen(true)}
-                  className="bg-purple-600 text-white hover:bg-purple-700"
+                  className={cloudConnection.isConnected 
+                    ? "bg-purple-600 text-white hover:bg-purple-700" 
+                    : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  }
                 >
-                  Conectar Alexa
+                  {cloudConnection.isConnected ? "Alexa Conectada" : "Conectar Alexa"}
                 </Button>
                 <Button 
                   className="bg-energy-primary hover:bg-energy-primary/90"
@@ -96,6 +143,13 @@ const Dispositivos = () => {
                 </Button>
               </div>
             </div>
+            
+            {cloudConnection.isConnected && (
+              <div className="mt-2 p-2 bg-green-50 border border-green-100 rounded-md text-sm text-green-700 flex items-center">
+                <Cloud className="h-4 w-4 mr-2" />
+                Monitoramento em nuvem ativo | Última sincronização: {cloudConnection.lastSyncTime?.toLocaleTimeString() || 'N/A'}
+              </div>
+            )}
           </div>
 
           <Tabs defaultValue="todos" className="w-full">
@@ -108,24 +162,27 @@ const Dispositivos = () => {
             <TabsContent value="todos" className="mt-6">
               <DeviceList 
                 devices={devices}
-                onTogglePower={toggleDevicePower}
+                onTogglePower={handleToggleDevice}
                 onRemove={removeDevice}
+                cloudConnected={cloudConnection.isConnected}
               />
             </TabsContent>
             
             <TabsContent value="ativos">
               <DeviceList 
                 devices={devices.filter(d => d.powerState)}
-                onTogglePower={toggleDevicePower}
+                onTogglePower={handleToggleDevice}
                 onRemove={removeDevice}
+                cloudConnected={cloudConnection.isConnected}
               />
             </TabsContent>
             
             <TabsContent value="inativos">
               <DeviceList 
                 devices={devices.filter(d => !d.powerState)}
-                onTogglePower={toggleDevicePower}
+                onTogglePower={handleToggleDevice}
                 onRemove={removeDevice}
+                cloudConnected={cloudConnection.isConnected}
               />
             </TabsContent>
           </Tabs>
@@ -138,7 +195,7 @@ const Dispositivos = () => {
           
           <AlexaIntegration 
             open={isAlexaOpen} 
-            onOpenChange={setIsAlexaOpen} 
+            onOpenChange={handleAlexaDialogChange} 
           />
         </main>
       </div>
