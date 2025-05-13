@@ -18,15 +18,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Check if the required tables exist and create them if they don't
 export const initializeDatabase = async () => {
   try {
-    // Check if tables exist
+    // Check if tables exist - properly handle the PostgrestFilterBuilder
     const { data: tableExists, error: checkError } = await supabase
       .from('devices')
       .select('id')
-      .limit(1)
-      .catch((err) => {
-        console.log('Table check error:', err);
-        return { data: null, error: err };
-      });
+      .limit(1);
 
     if (checkError) {
       console.log('Database tables need to be created. Initializing database...');
