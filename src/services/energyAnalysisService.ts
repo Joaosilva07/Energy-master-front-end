@@ -47,6 +47,13 @@ const simulatedDataset = {
     tv: { peakFactor: 1.8, offPeakFactor: 0.2, standbyConsumption: 5 },
     computer: { peakFactor: 1.9, offPeakFactor: 0.1, standbyConsumption: 3 },
     lamp: { peakFactor: 1.0, offPeakFactor: 0.0, standbyConsumption: 0 },
+    shower: { peakFactor: 2.5, offPeakFactor: 0.0, standbyConsumption: 0 },
+    microwave: { peakFactor: 2.2, offPeakFactor: 0.1, standbyConsumption: 2 },
+    washer: { peakFactor: 2.0, offPeakFactor: 0.1, standbyConsumption: 3 },
+    dryer: { peakFactor: 2.3, offPeakFactor: 0.0, standbyConsumption: 0 },
+    iron: { peakFactor: 2.2, offPeakFactor: 0.0, standbyConsumption: 0 },
+    dishwasher: { peakFactor: 1.8, offPeakFactor: 0.1, standbyConsumption: 2 },
+    waterheater: { peakFactor: 1.9, offPeakFactor: 0.2, standbyConsumption: 5 },
     other: { peakFactor: 1.5, offPeakFactor: 0.2, standbyConsumption: 4 }
   },
   
@@ -57,6 +64,13 @@ const simulatedDataset = {
     tv: 18,
     computer: 25,
     lamp: 12,
+    shower: 30,
+    microwave: 10,
+    washer: 20,
+    dryer: 25,
+    iron: 15,
+    dishwasher: 18,
+    waterheater: 20,
     other: 10
   }
 };
@@ -64,7 +78,7 @@ const simulatedDataset = {
 // AI Energy Analysis Service
 export const energyAnalysisService = {
   // Analyze device data and return consumption metrics and insights
-  analyzeConsumption(devices: Device[]): EnergyAnalysis {
+  analyzeConsumption(devices: Device[], localDate: Date = new Date()): EnergyAnalysis {
     // If no devices, return default values
     if (!devices || devices.length === 0) {
       return {
@@ -89,7 +103,7 @@ export const energyAnalysisService = {
     
     // Calculate average hourly consumption with dataset patterns
     const baseHourlyConsumption = dailyConsumption / 24;
-    const currentHour = new Date().getHours();
+    const currentHour = localDate.getHours();
     const hourlyPattern = simulatedDataset.hourlyPatterns[currentHour];
     const averageConsumption = baseHourlyConsumption * hourlyPattern;
     
@@ -168,7 +182,7 @@ export const energyAnalysisService = {
       });
     }
     
-    // Time-based insight
+    // Time-based insight using local time
     const peakHours = currentHour >= 18 && currentHour <= 21;
     if (peakHours && activeDevices.length > 3) {
       insights.push({
@@ -227,10 +241,11 @@ export const energyAnalysisService = {
   },
 
   // Generate hourly consumption data for charts with enhanced dataset patterns
-  generateHourlyData(devices: Device[]) {
+  generateHourlyData(devices: Device[], localDate: Date = new Date()) {
     if (!devices || devices.length === 0) return [];
     
-    const baseConsumption = this.analyzeConsumption(devices).metrics.averageConsumption;
+    const baseConsumption = this.analyzeConsumption(devices, localDate).metrics.averageConsumption;
+    const currentHour = localDate.getHours();
     
     return Array.from({ length: 24 }, (_, i) => {
       // Use dataset hourly patterns for more realistic consumption
@@ -239,20 +254,23 @@ export const energyAnalysisService = {
       // Add some randomness for realism
       const randomVariation = 0.9 + Math.random() * 0.2;
       
+      // Make current hour value the most accurate
+      const hourAdjustment = i === currentHour ? 1 : (Math.abs(i - currentHour) < 3 ? 0.98 : 0.95);
+      
       return {
         hour: `${String(i).padStart(2, '0')}:00`,
-        consumption: parseFloat((baseConsumption * hourPattern * randomVariation).toFixed(2)),
+        consumption: parseFloat((baseConsumption * hourPattern * randomVariation * hourAdjustment).toFixed(2)),
       };
     });
   },
 
   // Generate daily consumption data for charts with enhanced dataset patterns
-  generateDailyData(devices: Device[]) {
+  generateDailyData(devices: Device[], localDate: Date = new Date()) {
     if (!devices || devices.length === 0) return [];
     
-    const baseConsumption = this.analyzeConsumption(devices).metrics.dailyConsumption;
+    const baseConsumption = this.analyzeConsumption(devices, localDate).metrics.dailyConsumption;
     const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-    const currentDayIdx = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+    const currentDayIdx = localDate.getDay(); // 0 = Sunday, 6 = Saturday
     
     return daysOfWeek.map((day, i) => {
       // Use dataset day-of-week patterns for more realistic consumption
@@ -273,12 +291,12 @@ export const energyAnalysisService = {
   },
 
   // Generate monthly consumption data for charts with enhanced dataset patterns
-  generateMonthlyData(devices: Device[]) {
+  generateMonthlyData(devices: Device[], localDate: Date = new Date()) {
     if (!devices || devices.length === 0) return [];
     
     const totalConsumption = devices.reduce((sum, device) => sum + device.consumption, 0);
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    const currentMonth = new Date().getMonth(); // 0 = January, 11 = December
+    const currentMonth = localDate.getMonth(); // 0 = January, 11 = December
     
     return months.map((month, i) => {
       // Use dataset monthly patterns for more realistic seasonal consumption

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,25 @@ import DeviceList from '@/components/DeviceList';
 
 const Dispositivos = () => {
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
-  const { devices, addDevice, toggleDevicePower, removeDevice } = useDevices();
+  const { devices, addDevice, toggleDevicePower, removeDevice, fetchDevices } = useDevices();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Refresh data periodically (every 60 seconds)
+  useEffect(() => {
+    // Set initial data
+    fetchDevices();
+    
+    // Update the last update timestamp
+    setLastUpdated(new Date());
+    
+    // Set up periodic refresh
+    const refreshInterval = setInterval(() => {
+      fetchDevices();
+      setLastUpdated(new Date());
+    }, 60000); // 60 seconds
+    
+    return () => clearInterval(refreshInterval);
+  }, [fetchDevices]);
 
   return (
     <div className="flex h-screen bg-background">
@@ -23,7 +41,12 @@ const Dispositivos = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold">Dispositivos</h1>
-                <p className="text-muted-foreground">Gerencie seus dispositivos conectados</p>
+                <p className="text-muted-foreground">
+                  Gerencie seus dispositivos conectados
+                  <span className="text-xs ml-2">
+                    Última atualização: {lastUpdated.toLocaleTimeString()}
+                  </span>
+                </p>
               </div>
               <Button 
                 className="bg-energy-primary hover:bg-energy-primary/90"
