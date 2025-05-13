@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb, ThermometerSun, Timer, Zap } from 'lucide-react';
 import { useTips, Tip } from '@/hooks/useTips';
-import { iconRenderer } from '@/utils/iconRenderer';
+import { renderIcon } from '@/utils/iconRenderer';
 
 const Dicas = () => {
   const { featuredTips, dailyTip, getTipsByCategory, isLoading } = useTips();
@@ -39,7 +39,7 @@ const Dicas = () => {
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         <div className="rounded-lg p-2 bg-energy-primary/10">
-                          {iconRenderer(tip.icon)}
+                          {renderIcon(tip.icon)}
                         </div>
                         <div>
                           <h3 className="font-semibold mb-2">{tip.title}</h3>
