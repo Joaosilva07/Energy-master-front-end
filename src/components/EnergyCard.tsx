@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 interface EnergyCardProps {
   title: string;
-  value: number;
+  value: number | string;  // Updated to accept string or number
   unit?: string;
   percentageChange: number;
   icon?: React.ReactNode;
@@ -33,7 +33,9 @@ const EnergyCard = ({
         {icon}
       </div>
       <div className="mt-3 flex items-baseline">
-        <h2 className="text-3xl font-bold">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</h2>
+        <h2 className="text-3xl font-bold">
+          {typeof value === 'number' ? value.toLocaleString('pt-BR') : value}
+        </h2>
         {unit && <span className="ml-1 text-sm text-muted-foreground">{unit}</span>}
       </div>
       <div className="mt-2 flex items-center text-xs">
