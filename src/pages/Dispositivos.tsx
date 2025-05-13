@@ -63,9 +63,9 @@ const Dispositivos = () => {
     };
   }, [fetchDevices]);
 
-  // Handle device toggle with debounce
+  // Handle device toggle with minimal delay
   const handleToggleDevice = useCallback(async (deviceId: string) => {
-    // Prevent rapid clicks
+    // Prevent rapid clicks, but with minimal delay
     if (isProcessingToggle) return;
     
     setIsProcessingToggle(true);
@@ -88,8 +88,8 @@ const Dispositivos = () => {
         await toggleDevicePower(deviceId);
       }
     } finally {
-      // Release processing lock after a short delay
-      setTimeout(() => setIsProcessingToggle(false), 500);
+      // Release processing lock with minimal delay
+      setTimeout(() => setIsProcessingToggle(false), 100);
     }
   }, [devices, toggleDevicePower, cloudConnection, cloudEnabled, isProcessingToggle]);
 

@@ -40,9 +40,11 @@ export const useToggleDevicePower = (
     // Update state first for immediate UI feedback
     setDevices(updatedDevices);
     
+    // Show a toast but don't wait for it
     toast({
       title: updatedDevice.powerState ? "Dispositivo ligado" : "Dispositivo desligado",
       description: `${updatedDevice.name} foi ${updatedDevice.powerState ? 'ligado' : 'desligado'} com sucesso.`,
+      duration: 2000, // Reduce duration to 2 seconds
     });
     
     try {
