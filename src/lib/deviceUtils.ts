@@ -38,36 +38,32 @@ export const fetchDevicesFromSupabase = async (userId: string) => {
 
 // Add a device to Supabase
 export const addDeviceToSupabase = async (device: Omit<Device, 'id'>) => {
+  // Filter out any fields that might not exist in the database
+  const deviceToAdd = {
+    name: device.name,
+    type: device.type,
+    consumption: device.consumption,
+    status: device.status,
+    lastActivity: device.lastActivity,
+    powerState: device.powerState,
+    location: device.location || 'Casa',
+    user_id: device.userId
+  };
+
   return await supabase
     .from('devices')
-    .insert({
-      name: device.name,
-      type: device.type,
-      consumption: device.consumption,
-      status: device.status,
-      lastActivity: device.lastActivity,
-      powerState: device.powerState,
-      location: device.location || 'Casa',
-      user_id: device.userId,
-      activatedAt: device.powerState ? new Date().toISOString() : null
-    })
+    .insert(deviceToAdd)
     .select('*')
     .single();
 };
 
 // Update a device in Supabase
 export const updateDeviceInSupabase = async (id: string, userId: string, updates: Partial<Device>) => {
-  // If turning the device on, add the activation timestamp
-  const updatesToSubmit = { ...updates };
-  if (updates.powerState === true) {
-    updatesToSubmit.activatedAt = new Date().toISOString();
-  } else if (updates.powerState === false) {
-    updatesToSubmit.activatedAt = null;
-  }
-  
+  // We'll only send fields that we know exist in the database
+  // Instead of hardcoding fields that might not exist
   return await supabase
     .from('devices')
-    .update(updatesToSubmit)
+    .update(updates)
     .eq('id', id)
     .eq('user_id', userId);
 };

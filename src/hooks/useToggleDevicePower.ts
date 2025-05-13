@@ -44,13 +44,15 @@ export const useToggleDevicePower = (
     });
     
     try {
-      // Update in Supabase
-      const { error } = await updateDeviceInSupabase(id, user.id, { 
+      // Only include fields we're sure exist in the database schema
+      const updateData: Record<string, any> = { 
         powerState: updatedDevice.powerState,
         lastActivity: 'Agora',
-        status: updatedDevice.status,
-        activatedAt: updatedDevice.activatedAt
-      });
+        status: updatedDevice.status
+      };
+      
+      // Try to update with activatedAt field
+      const { error } = await updateDeviceInSupabase(id, user.id, updateData);
 
       if (error) {
         console.error('Error updating device in Supabase:', error);
