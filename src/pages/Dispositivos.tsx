@@ -1,15 +1,14 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, RefreshCw, Cloud } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import AddDeviceForm from '@/components/AddDeviceForm';
 import { useDevices } from '@/hooks/useDevices';
-import DeviceList from '@/components/DeviceList';
 import { useToast } from '@/components/ui/use-toast';
 import AlexaIntegration from '@/components/AlexaIntegration';
 import { useCloudConnection } from '@/hooks/useCloudConnection';
+import DeviceHeader from '@/components/devices/DeviceHeader';
+import DeviceTabs from '@/components/devices/DeviceTabs';
 
 const Dispositivos = () => {
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
@@ -103,88 +102,20 @@ const Dispositivos = () => {
       <div className="flex flex-1 flex-col">
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold">Dispositivos</h1>
-                <p className="text-muted-foreground">
-                  Gerencie seus dispositivos conectados
-                  <span className="text-xs ml-2">
-                    Última atualização: {lastUpdated.toLocaleTimeString()}
-                  </span>
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline"
-                  onClick={handleRefresh}
-                  className="flex items-center gap-1"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  Atualizar
-                </Button>
-                <Button 
-                  variant={cloudConnection.isConnected ? "secondary" : "outline"}
-                  onClick={() => setIsAlexaOpen(true)}
-                  className={cloudConnection.isConnected 
-                    ? "bg-purple-600 text-white hover:bg-purple-700" 
-                    : "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                  }
-                >
-                  {cloudConnection.isConnected ? "Alexa Conectada" : "Conectar Alexa"}
-                </Button>
-                <Button 
-                  className="bg-energy-primary hover:bg-energy-primary/90"
-                  onClick={() => setIsAddDeviceOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Adicionar Dispositivo
-                </Button>
-              </div>
-            </div>
-            
-            {cloudConnection.isConnected && (
-              <div className="mt-2 p-2 bg-green-50 border border-green-100 rounded-md text-sm text-green-700 flex items-center">
-                <Cloud className="h-4 w-4 mr-2" />
-                Monitoramento em nuvem ativo | Última sincronização: {cloudConnection.lastSyncTime?.toLocaleTimeString() || 'N/A'}
-              </div>
-            )}
-          </div>
+          <DeviceHeader 
+            onRefresh={handleRefresh}
+            onAddDevice={() => setIsAddDeviceOpen(true)}
+            onOpenAlexa={() => setIsAlexaOpen(true)}
+            lastUpdated={lastUpdated}
+            cloudConnection={cloudConnection}
+          />
 
-          <Tabs defaultValue="todos" className="w-full">
-            <TabsList>
-              <TabsTrigger value="todos">Todos</TabsTrigger>
-              <TabsTrigger value="ativos">Ativos</TabsTrigger>
-              <TabsTrigger value="inativos">Inativos</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="todos" className="mt-6">
-              <DeviceList 
-                devices={devices}
-                onTogglePower={handleToggleDevice}
-                onRemove={removeDevice}
-                cloudConnected={cloudConnection.isConnected}
-              />
-            </TabsContent>
-            
-            <TabsContent value="ativos">
-              <DeviceList 
-                devices={devices.filter(d => d.powerState)}
-                onTogglePower={handleToggleDevice}
-                onRemove={removeDevice}
-                cloudConnected={cloudConnection.isConnected}
-              />
-            </TabsContent>
-            
-            <TabsContent value="inativos">
-              <DeviceList 
-                devices={devices.filter(d => !d.powerState)}
-                onTogglePower={handleToggleDevice}
-                onRemove={removeDevice}
-                cloudConnected={cloudConnection.isConnected}
-              />
-            </TabsContent>
-          </Tabs>
+          <DeviceTabs 
+            devices={devices}
+            onTogglePower={handleToggleDevice}
+            onRemove={removeDevice}
+            cloudConnected={cloudConnection.isConnected}
+          />
 
           <AddDeviceForm 
             open={isAddDeviceOpen} 
