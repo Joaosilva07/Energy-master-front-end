@@ -1,370 +1,223 @@
 
 import { useState, useEffect } from 'react';
-import { useToast } from "@/components/ui/use-toast";
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
+import { useToast } from "@/components/ui/use-toast";
 
+// Type definition for our devices
 export interface Device {
   id: string;
   name: string;
   type: string;
   consumption: number;
-  status: 'online' | 'offline';
+  status: string;
   lastActivity: string;
   powerState: boolean;
   location?: string;
   userId: string;
 }
 
-// Initial devices for demonstration
-const initialDevices: Omit<Device, 'userId'>[] = [
-  {
-    id: '1',
-    name: 'Televisão - Sala',
-    type: 'tv',
-    consumption: 45,
-    status: 'online',
-    lastActivity: 'Há 5 minutos',
-    powerState: true,
-    location: 'Sala',
-  },
-  {
-    id: '2',
-    name: 'Refrigerador',
-    type: 'refrigerator',
-    consumption: 120,
-    status: 'online',
-    lastActivity: 'Agora',
-    powerState: true,
-    location: 'Cozinha',
-  },
-  {
-    id: '3',
-    name: 'Condicionador de Ar',
-    type: 'ac',
-    consumption: 180,
-    status: 'online',
-    lastActivity: 'Há 2 minutos',
-    powerState: true,
-    location: 'Quarto',
-  },
-  {
-    id: '4',
-    name: 'Computador',
-    type: 'computer',
-    consumption: 60,
-    status: 'offline',
-    lastActivity: 'Há 2 horas',
-    powerState: false,
-    location: 'Escritório',
-  }
-];
-
-export function useDevices() {
-  const { toast } = useToast();
+export const useDevices = () => {
   const { user } = useUser();
-  const userId = user?.id || 'anonymous';
-  
+  const { toast } = useToast();
   const [devices, setDevices] = useState<Device[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [tableExists, setTableExists] = useState<boolean>(true);
 
-  // Check if devices table exists
-  useEffect(() => {
-    async function checkTable() {
-      if (!user) return;
-      
-      try {
-        await supabase.from('devices').select('count', { count: 'exact', head: true });
-        setTableExists(true);
-      } catch (error: any) {
-        if (error.message && error.message.includes('does not exist')) {
-          console.log('Devices table does not exist yet');
-          setTableExists(false);
-          
-          // Set local fallback devices
-          const fallbackDevices = initialDevices.map(device => ({ 
-            ...device, 
-            userId 
-          }));
-          setDevices(fallbackDevices);
-          setIsLoading(false);
-          
-          // Show notice to user
-          toast({
-            title: "Banco de dados não configurado",
-            description: "Usando dados locais temporariamente. Por favor, crie as tabelas no Supabase.",
-          });
-        }
-      }
-    }
-    
-    checkTable();
-  }, [user, userId, toast]);
-
-  // Fetch devices from Supabase
-  useEffect(() => {
-    if (!user || !tableExists) {
+  // Fetch devices from Supabase or localStorage
+  const fetchDevices = async () => {
+    if (!user) {
+      setDevices([]);
       setIsLoading(false);
       return;
     }
 
-    async function fetchDevices() {
-      try {
-        setIsLoading(true);
-        
-        const { data, error } = await supabase
-          .from('devices')
-          .select('*')
-          .eq('user_id', userId);
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          // Map from Supabase format to our Device format
-          const formattedDevices = data.map(device => ({
-            id: device.id,
-            name: device.name,
-            type: device.type,
-            consumption: device.consumption,
-            status: device.status as 'online' | 'offline',
-            lastActivity: device.lastActivity,
-            powerState: device.powerState,
-            location: device.location,
-            userId: device.user_id
-          }));
-          
-          setDevices(formattedDevices);
-          
-          // If user has no devices in database, use initial ones
-          if (formattedDevices.length === 0) {
-            await Promise.all(initialDevices.map(device => 
-              addInitialDevice({...device, userId})
-            ));
-            
-            // Then fetch them again
-            const { data: newData } = await supabase
-              .from('devices')
-              .select('*')
-              .eq('user_id', userId);
-              
-            if (newData) {
-              const newFormattedDevices = newData.map(device => ({
-                id: device.id,
-                name: device.name,
-                type: device.type,
-                consumption: device.consumption,
-                status: device.status as 'online' | 'offline',
-                lastActivity: device.lastActivity,
-                powerState: device.powerState,
-                location: device.location,
-                userId: device.user_id
-              }));
-              
-              setDevices(newFormattedDevices);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching devices:', err);
-        setError(err as Error);
+    setIsLoading(true);
+    try {
+      // Try to fetch from Supabase
+      const { data, error } = await supabase
+        .from('devices')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching devices from Supabase:', error);
         
         // Fallback to localStorage if Supabase fails
-        const savedDevices = localStorage.getItem(`devices_${userId}`);
+        const savedDevices = localStorage.getItem(`devices_${user.id}`);
         if (savedDevices) {
           setDevices(JSON.parse(savedDevices));
         } else {
-          // Use initial devices as fallback
-          const fallbackDevices = initialDevices.map(device => ({ 
-            ...device, 
-            userId 
-          }));
-          setDevices(fallbackDevices);
+          setDevices([]);
         }
-      } finally {
-        setIsLoading(false);
+      } else {
+        // Convert Supabase data format to our Device format
+        const formattedDevices = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          type: item.type,
+          consumption: item.consumption,
+          status: item.status,
+          lastActivity: item.lastActivity,
+          powerState: item.powerState,
+          location: item.location,
+          userId: item.user_id
+        }));
+        
+        setDevices(formattedDevices);
+        
+        // Update localStorage as backup
+        localStorage.setItem(`devices_${user.id}`, JSON.stringify(formattedDevices));
       }
-    }
-
-    fetchDevices();
-  }, [userId, user, tableExists, toast]);
-
-  // Helper function to add initial device
-  const addInitialDevice = async (device: Device) => {
-    if (!tableExists) return;
-    
-    try {
-      await supabase
-        .from('devices')
-        .insert([{
-          name: device.name,
-          type: device.type,
-          consumption: device.consumption,
-          status: device.status,
-          lastActivity: device.lastActivity,
-          powerState: device.powerState,
-          location: device.location,
-          user_id: device.userId
-        }]);
-    } catch (error) {
-      console.error('Error adding initial device:', error);
+    } catch (err) {
+      console.error('Failed to fetch devices:', err);
+      setDevices([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Add a device to Supabase
-  const addDevice = async (newDevice: Device) => {
+  // Add a new device
+  const addDevice = async (device: Device) => {
+    if (!user) return;
+    
     try {
-      if (!tableExists) {
-        // Just add to local state if table doesn't exist
-        setDevices(prev => [...prev, newDevice]);
-        
-        toast({
-          title: "Dispositivo adicionado (modo local)",
-          description: "O dispositivo foi adicionado localmente. Configure o banco de dados para persistência.",
-        });
-        return;
-      }
+      // Ensure device has the correct user ID
+      const newDevice = {
+        ...device,
+        userId: user.id
+      };
       
+      // Try to insert into Supabase
       const { data, error } = await supabase
         .from('devices')
-        .insert([{
+        .insert({
           name: newDevice.name,
           type: newDevice.type,
           consumption: newDevice.consumption,
           status: newDevice.status,
           lastActivity: newDevice.lastActivity,
           powerState: newDevice.powerState,
-          location: newDevice.location,
-          user_id: userId
-        }])
-        .select();
-        
+          location: newDevice.location || 'Casa',
+          user_id: user.id
+        })
+        .select('*')
+        .single();
+
       if (error) {
-        throw error;
-      }
-      
-      if (data && data[0]) {
+        console.error('Error adding device to Supabase:', error);
+        toast({
+          title: "Erro ao adicionar dispositivo",
+          description: "Não foi possível salvar no banco de dados, mas foi salvo localmente.",
+          variant: "destructive",
+        });
+        
+        // Fallback to localStorage
+        const updatedDevices = [...devices, newDevice];
+        setDevices(updatedDevices);
+        localStorage.setItem(`devices_${user.id}`, JSON.stringify(updatedDevices));
+      } else {
+        // If Supabase succeeds, add the returned device with its DB ID
         const formattedDevice = {
-          id: data[0].id,
-          name: data[0].name,
-          type: data[0].type,
-          consumption: data[0].consumption,
-          status: data[0].status as 'online' | 'offline',
-          lastActivity: data[0].lastActivity,
-          powerState: data[0].powerState,
-          location: data[0].location,
-          userId: data[0].user_id
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          consumption: data.consumption,
+          status: data.status,
+          lastActivity: data.lastActivity,
+          powerState: data.powerState,
+          location: data.location,
+          userId: data.user_id
         };
         
         setDevices(prev => [...prev, formattedDevice]);
         
-        toast({
-          title: "Dispositivo adicionado",
-          description: "O novo dispositivo foi adicionado com sucesso.",
-        });
+        // Update localStorage backup
+        localStorage.setItem(`devices_${user.id}`, JSON.stringify([...devices, formattedDevice]));
       }
     } catch (err) {
-      console.error('Error adding device:', err);
-      toast({
-        title: "Erro ao adicionar dispositivo",
-        description: "Ocorreu um erro ao adicionar o dispositivo.",
-        variant: "destructive"
-      });
+      console.error('Failed to add device:', err);
     }
   };
 
   // Toggle device power state
-  const toggleDevicePower = async (deviceId: string) => {
+  const toggleDevicePower = async (id: string) => {
+    if (!user) return;
+
+    const deviceIndex = devices.findIndex(d => d.id === id);
+    if (deviceIndex === -1) return;
+    
+    const updatedDevice = {
+      ...devices[deviceIndex],
+      powerState: !devices[deviceIndex].powerState,
+      lastActivity: 'Agora'
+    };
+    
+    const updatedDevices = [...devices];
+    updatedDevices[deviceIndex] = updatedDevice;
+    
+    // Update state first for immediate UI feedback
+    setDevices(updatedDevices);
+    
     try {
-      // Find the device to toggle
-      const deviceToUpdate = devices.find(device => device.id === deviceId);
-      
-      if (!deviceToUpdate) return;
-      
-      const newPowerState = !deviceToUpdate.powerState;
-      
-      if (tableExists) {
-        // Update in Supabase
-        const { error } = await supabase
-          .from('devices')
-          .update({ 
-            powerState: newPowerState,
-            status: newPowerState ? 'online' : 'offline',
-            lastActivity: 'Agora'
-          })
-          .eq('id', deviceId);
-          
-        if (error) {
-          throw error;
-        }
+      // Update in Supabase
+      const { error } = await supabase
+        .from('devices')
+        .update({ 
+          powerState: updatedDevice.powerState,
+          lastActivity: 'Agora'
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating device in Supabase:', error);
+        // Fallback to localStorage
+        localStorage.setItem(`devices_${user.id}`, JSON.stringify(updatedDevices));
       }
-      
-      // Update local state
-      setDevices(devices.map(device => 
-        device.id === deviceId 
-          ? { 
-              ...device, 
-              powerState: newPowerState,
-              status: newPowerState ? 'online' : 'offline',
-              lastActivity: 'Agora'
-            } 
-          : device
-      ));
-      
-      toast({
-        title: "Estado alterado",
-        description: "O estado do dispositivo foi alterado.",
-      });
     } catch (err) {
-      console.error('Error toggling device power:', err);
-      toast({
-        title: "Erro ao alterar estado",
-        description: "Ocorreu um erro ao alterar o estado do dispositivo.",
-        variant: "destructive"
-      });
+      console.error('Failed to update device:', err);
+      localStorage.setItem(`devices_${user.id}`, JSON.stringify(updatedDevices));
     }
   };
 
   // Remove a device
-  const removeDevice = async (deviceId: string) => {
+  const removeDevice = async (id: string) => {
+    if (!user) return;
+    
     try {
-      if (tableExists) {
-        const { error } = await supabase
-          .from('devices')
-          .delete()
-          .eq('id', deviceId);
-          
-        if (error) {
-          throw error;
-        }
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('devices')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error removing device from Supabase:', error);
       }
       
-      setDevices(devices.filter(device => device.id !== deviceId));
+      // Update state regardless of Supabase result
+      const updatedDevices = devices.filter(device => device.id !== id);
+      setDevices(updatedDevices);
       
-      toast({
-        title: "Dispositivo removido",
-        description: "O dispositivo foi removido com sucesso.",
-        variant: "destructive"
-      });
+      // Update localStorage
+      localStorage.setItem(`devices_${user.id}`, JSON.stringify(updatedDevices));
     } catch (err) {
-      console.error('Error removing device:', err);
-      toast({
-        title: "Erro ao remover dispositivo",
-        description: "Ocorreu um erro ao remover o dispositivo.",
-        variant: "destructive"
-      });
+      console.error('Failed to remove device:', err);
     }
   };
 
+  // Load devices when component mounts or user changes
+  useEffect(() => {
+    fetchDevices();
+  }, [user?.id]);
+
   return {
     devices,
+    isLoading,
     addDevice,
     toggleDevicePower,
     removeDevice,
-    isLoading,
-    error
+    fetchDevices
   };
-}
+};

@@ -3,6 +3,7 @@ import React from 'react';
 import { Tv, Laptop, Fan, ChevronRight, Radio } from 'lucide-react';
 import { useDevices } from '@/hooks/useDevices';
 import { useUser } from '@/contexts/UserContext';
+import { Link } from 'react-router-dom';
 
 const DeviceMonitoring = () => {
   const { devices, isLoading } = useDevices();
@@ -23,7 +24,7 @@ const DeviceMonitoring = () => {
     );
   }
 
-  // If there are no devices, show a message
+  // If there are no devices, show an empty state with call to action
   if (devices.length === 0) {
     return (
       <div className="rounded-lg border bg-card p-5">
@@ -31,8 +32,12 @@ const DeviceMonitoring = () => {
           <h3 className="text-lg font-semibold">Dispositivos</h3>
           <p className="text-sm text-muted-foreground">Monitoramento de consumo por dispositivo</p>
         </div>
-        <div className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground">Nenhum dispositivo encontrado. Adicione dispositivos na página Dispositivos.</p>
+        <div className="flex flex-col items-center justify-center py-8 space-y-4">
+          <p className="text-muted-foreground text-center">Você ainda não possui dispositivos cadastrados.</p>
+          <Link to="/dispositivos" className="text-sm text-energy-primary hover:underline flex items-center">
+            Adicionar dispositivos
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Link>
         </div>
       </div>
     );
@@ -45,10 +50,11 @@ const DeviceMonitoring = () => {
           <h3 className="text-lg font-semibold">Dispositivos</h3>
           <p className="text-sm text-muted-foreground">Monitoramento de consumo por dispositivo</p>
         </div>
-        <button className="text-sm text-energy-primary hover:underline">Ver todos</button>
+        <Link to="/dispositivos" className="text-sm text-energy-primary hover:underline">Ver todos</Link>
       </div>
       <div className="space-y-4">
-        {devices.map((device, index) => (
+        {/* Mostrar os 3 primeiros dispositivos na dashboard */}
+        {devices.slice(0, 3).map((device) => (
           <div
             key={device.id}
             className="flex items-center justify-between rounded-md border p-3 hover:bg-muted/20"
@@ -77,6 +83,16 @@ const DeviceMonitoring = () => {
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </div>
         ))}
+        
+        {/* Mostrar link para ver mais se houver mais de 3 dispositivos */}
+        {devices.length > 3 && (
+          <Link 
+            to="/dispositivos" 
+            className="text-center block w-full text-sm text-energy-primary hover:underline pt-2"
+          >
+            Ver mais {devices.length - 3} dispositivos
+          </Link>
+        )}
       </div>
     </div>
   );

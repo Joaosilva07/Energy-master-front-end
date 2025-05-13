@@ -1,5 +1,9 @@
 
--- Create devices table
+-- Este script cria as tabelas necessárias para o sistema
+-- Habilita a extensão UUID se ainda não estiver habilitada
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Cria a tabela de dispositivos
 CREATE TABLE IF NOT EXISTS devices (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
@@ -17,7 +21,7 @@ CREATE TABLE IF NOT EXISTS devices (
     ON DELETE CASCADE
 );
 
--- Create goals table
+-- Cria a tabela de metas
 CREATE TABLE IF NOT EXISTS goals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
@@ -38,7 +42,7 @@ CREATE TABLE IF NOT EXISTS goals (
     ON DELETE CASCADE
 );
 
--- Create tips table
+-- Cria a tabela de dicas
 CREATE TABLE IF NOT EXISTS tips (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   title TEXT NOT NULL,
@@ -50,53 +54,53 @@ CREATE TABLE IF NOT EXISTS tips (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Set up Row Level Security (RLS)
+-- Configura o controle de acesso Row Level Security (RLS)
 ALTER TABLE devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 
--- Create policies for devices
-CREATE POLICY "Users can view their own devices"
+-- Cria políticas para a tabela de dispositivos
+CREATE POLICY "Usuários podem ver seus próprios dispositivos"
   ON devices
   FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert their own devices"
+CREATE POLICY "Usuários podem inserir seus próprios dispositivos"
   ON devices
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own devices"
+CREATE POLICY "Usuários podem atualizar seus próprios dispositivos"
   ON devices
   FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own devices"
+CREATE POLICY "Usuários podem excluir seus próprios dispositivos"
   ON devices
   FOR DELETE
   USING (auth.uid() = user_id);
 
--- Create policies for goals
-CREATE POLICY "Users can view their own goals"
+-- Cria políticas para a tabela de metas
+CREATE POLICY "Usuários podem ver suas próprias metas"
   ON goals
   FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert their own goals"
+CREATE POLICY "Usuários podem inserir suas próprias metas"
   ON goals
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own goals"
+CREATE POLICY "Usuários podem atualizar suas próprias metas"
   ON goals
   FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can delete their own goals"
+CREATE POLICY "Usuários podem excluir suas próprias metas"
   ON goals
   FOR DELETE
   USING (auth.uid() = user_id);
 
--- Insert some initial tips data
+-- Insere dados iniciais para dicas
 INSERT INTO tips (title, description, icon, savings, category, featured)
 VALUES 
   ('Otimize seu Ar Condicionado', 'Mantenha a temperatura em 23°C e faça limpeza regular dos filtros.', 'thermometerSun', '25% no consumo de A/C', 'climatizacao', true),

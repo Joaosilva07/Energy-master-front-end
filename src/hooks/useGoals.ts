@@ -2,9 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/lib/supabase';
-import { useToast } from "@/components/ui/use-toast";
 
-// Goal interface to better type our data
 export interface Goal {
   id: string;
   title: string;
@@ -20,180 +18,118 @@ export interface Goal {
   userId: string;
 }
 
-// Initial goals data
-const initialGoals: Omit<Goal, 'userId'>[] = [
-  {
-    id: '1',
-    title: "Reduzir Consumo Total",
-    description: "Diminuir o consumo mensal em 20% em relação ao mês anterior",
-    progress: 65,
-    status: "Em Progresso",
-    statusColor: "text-yellow-500",
-    iconType: "target",
-    iconBg: "bg-energy-primary/10"
-  },
-  {
-    id: '2',
-    title: "Otimizar Ar Condicionado",
-    description: "Reduzir o consumo do A/C em 30% através de programação inteligente",
-    progress: 85,
-    status: "Quase Concluído",
-    statusColor: "text-green-500",
-    iconType: "trendingDown",
-    iconBg: "bg-green-100"
-  },
-  {
-    id: '3',
-    title: "Meta de Pico",
-    description: "Manter o pico de consumo abaixo de 2.5 kWh/h",
-    progress: 40,
-    status: "Em Andamento",
-    statusColor: "text-yellow-500",
-    iconType: "trophy",
-    iconBg: "bg-yellow-100"
-  }
-];
-
 export const useGoals = () => {
   const { user } = useUser();
-  const { toast } = useToast();
-  const userId = user?.id || 'anonymous';
-  
   const [goals, setGoals] = useState<Goal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [tableExists, setTableExists] = useState<boolean>(true);
-  
-  // Check if goals table exists
-  useEffect(() => {
-    async function checkTable() {
-      if (!user) return;
-      
-      try {
-        await supabase.from('goals').select('count', { count: 'exact', head: true });
-        setTableExists(true);
-      } catch (error: any) {
-        if (error.message && error.message.includes('does not exist')) {
-          console.log('Goals table does not exist yet');
-          setTableExists(false);
-          
-          // Set local fallback goals
-          const fallbackGoals = initialGoals.map(goal => ({ 
-            ...goal, 
-            userId 
-          }));
-          setGoals(fallbackGoals);
-          setIsLoading(false);
-        }
-      }
+  const [totalProgress, setTotalProgress] = useState(0);
+  const [completedGoalsCount, setCompletedGoalsCount] = useState(0);
+  const [recentlyCompletedCount, setRecentlyCompletedCount] = useState(0);
+  const [inProgressCount, setInProgressCount] = useState(0);
+
+  // Calculate stats from goals
+  const calculateStats = (goalsData: Goal[]) => {
+    if (goalsData.length === 0) {
+      setTotalProgress(0);
+      setCompletedGoalsCount(0);
+      setRecentlyCompletedCount(0);
+      setInProgressCount(0);
+      return;
     }
+
+    // Calculate average progress
+    const avgProgress = Math.round(
+      goalsData.reduce((acc, goal) => acc + goal.progress, 0) / goalsData.length
+    );
     
-    checkTable();
-  }, [user, userId]);
-  
-  // Fetch goals from Supabase
-  useEffect(() => {
-    if (!user || !tableExists) {
+    // Count completed goals
+    const completed = goalsData.filter(goal => goal.progress === 100).length;
+    
+    // Count goals in progress (more than 0% but less than 100%)
+    const inProgress = goalsData.filter(
+      goal => goal.progress > 0 && goal.progress < 100
+    ).length;
+    
+    // For recently completed, we're using a mock value for now
+    // In a real app, you'd check completion dates
+    const recentlyCompleted = Math.min(2, completed);
+
+    setTotalProgress(avgProgress);
+    setCompletedGoalsCount(completed);
+    setRecentlyCompletedCount(recentlyCompleted);
+    setInProgressCount(inProgress);
+  };
+
+  // Fetch goals from Supabase or localStorage
+  const fetchGoals = async () => {
+    if (!user) {
+      setGoals([]);
       setIsLoading(false);
       return;
     }
 
-    async function fetchGoals() {
-      try {
-        setIsLoading(true);
-        
-        const { data, error } = await supabase
-          .from('goals')
-          .select('*')
-          .eq('user_id', userId);
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          // Map from Supabase format to our Goal format
-          const formattedGoals = data.map(goal => ({
-            id: goal.id,
-            title: goal.title,
-            description: goal.description,
-            progress: goal.progress,
-            status: goal.status,
-            statusColor: goal.statusColor,
-            iconType: goal.iconType,
-            iconBg: goal.iconBg,
-            target: goal.target,
-            targetDate: goal.targetDate,
-            type: goal.type,
-            userId: goal.user_id
-          }));
-          
-          setGoals(formattedGoals);
-          
-          // If user has no goals, create initial ones
-          if (formattedGoals.length === 0) {
-            await Promise.all(initialGoals.map(goal => 
-              addInitialGoal({...goal, userId})
-            ));
-            
-            // Then fetch them again
-            const { data: newData } = await supabase
-              .from('goals')
-              .select('*')
-              .eq('user_id', userId);
-              
-            if (newData) {
-              const newFormattedGoals = newData.map(goal => ({
-                id: goal.id,
-                title: goal.title,
-                description: goal.description,
-                progress: goal.progress,
-                status: goal.status,
-                statusColor: goal.statusColor,
-                iconType: goal.iconType,
-                iconBg: goal.iconBg,
-                target: goal.target,
-                targetDate: goal.targetDate,
-                type: goal.type,
-                userId: goal.user_id
-              }));
-              
-              setGoals(newFormattedGoals);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching goals:', err);
-        setError(err as Error);
-        
-        // Fallback to localStorage or initial data if Supabase fails
-        const savedGoals = localStorage.getItem(`goals_${userId}`);
-        if (savedGoals) {
-          setGoals(JSON.parse(savedGoals));
-        } else {
-          // Use initial goals as fallback
-          const fallbackGoals = initialGoals.map(goal => ({ 
-            ...goal, 
-            userId 
-          }));
-          setGoals(fallbackGoals);
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    setIsLoading(true);
+    try {
+      // Try to fetch from Supabase
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', user.id);
 
-    fetchGoals();
-  }, [userId, user, tableExists, toast]);
-  
-  // Helper function to add initial goals
-  const addInitialGoal = async (goal: Goal) => {
-    if (!tableExists) return;
+      if (error) {
+        console.error('Error fetching goals from Supabase:', error);
+        
+        // Fallback to localStorage
+        const savedGoals = localStorage.getItem(`goals_${user.id}`);
+        if (savedGoals) {
+          const parsedGoals = JSON.parse(savedGoals);
+          setGoals(parsedGoals);
+          calculateStats(parsedGoals);
+        } else {
+          setGoals([]);
+          calculateStats([]);
+        }
+      } else {
+        // Format data from Supabase
+        const formattedGoals = data.map(item => ({
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          progress: item.progress,
+          status: item.status,
+          statusColor: item.statusColor,
+          iconType: item.iconType,
+          iconBg: item.iconBg,
+          target: item.target,
+          targetDate: item.targetDate,
+          type: item.type,
+          userId: item.user_id
+        }));
+        
+        setGoals(formattedGoals);
+        calculateStats(formattedGoals);
+        
+        // Update localStorage as backup
+        localStorage.setItem(`goals_${user.id}`, JSON.stringify(formattedGoals));
+      }
+    } catch (err) {
+      console.error('Failed to fetch goals:', err);
+      setGoals([]);
+      calculateStats([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Add a new goal
+  const addGoal = async (goal: Goal) => {
+    if (!user) return;
     
     try {
-      await supabase
+      // Try to insert into Supabase
+      const { data, error } = await supabase
         .from('goals')
-        .insert([{
+        .insert({
           title: goal.title,
           description: goal.description,
           progress: goal.progress,
@@ -204,193 +140,150 @@ export const useGoals = () => {
           target: goal.target,
           targetDate: goal.targetDate,
           type: goal.type,
-          user_id: goal.userId
-        }]);
-    } catch (error) {
-      console.error('Error adding initial goal:', error);
-    }
-  };
-  
-  // Add a goal to Supabase
-  const addGoal = async (newGoal: Goal) => {
-    try {
-      if (!tableExists) {
-        // Just add to local state if table doesn't exist
-        setGoals(prev => [...prev, newGoal]);
-        
-        toast({
-          title: "Meta adicionada (modo local)",
-          description: "A meta foi adicionada localmente. Configure o banco de dados para persistência.",
-        });
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('goals')
-        .insert([{
-          title: newGoal.title,
-          description: newGoal.description,
-          progress: newGoal.progress,
-          status: newGoal.status,
-          statusColor: newGoal.statusColor,
-          iconType: newGoal.iconType,
-          iconBg: newGoal.iconBg,
-          target: newGoal.target,
-          targetDate: newGoal.targetDate,
-          type: newGoal.type,
-          user_id: userId
-        }])
-        .select();
-        
+          user_id: user.id
+        })
+        .select('*')
+        .single();
+
       if (error) {
-        throw error;
-      }
-      
-      if (data && data[0]) {
-        const formattedGoal = {
-          id: data[0].id,
-          title: data[0].title,
-          description: data[0].description,
-          progress: data[0].progress,
-          status: data[0].status,
-          statusColor: data[0].statusColor,
-          iconType: data[0].iconType,
-          iconBg: data[0].iconBg,
-          target: data[0].target,
-          targetDate: data[0].targetDate,
-          type: data[0].type,
-          userId: data[0].user_id
+        console.error('Error adding goal to Supabase:', error);
+        
+        // Fallback to localStorage
+        const newGoal = {
+          ...goal,
+          userId: user.id,
         };
         
-        setGoals(prev => [...prev, formattedGoal]);
+        const updatedGoals = [...goals, newGoal];
+        setGoals(updatedGoals);
+        calculateStats(updatedGoals);
+        localStorage.setItem(`goals_${user.id}`, JSON.stringify(updatedGoals));
+      } else {
+        // Add the returned goal with its DB ID
+        const formattedGoal = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          progress: data.progress,
+          status: data.status,
+          statusColor: data.statusColor,
+          iconType: data.iconType,
+          iconBg: data.iconBg,
+          target: data.target,
+          targetDate: data.targetDate,
+          type: data.type,
+          userId: data.user_id
+        };
         
-        toast({
-          title: "Meta adicionada",
-          description: "A nova meta foi adicionada com sucesso.",
-        });
+        const updatedGoals = [...goals, formattedGoal];
+        setGoals(updatedGoals);
+        calculateStats(updatedGoals);
+        localStorage.setItem(`goals_${user.id}`, JSON.stringify(updatedGoals));
       }
     } catch (err) {
-      console.error('Error adding goal:', err);
-      toast({
-        title: "Erro ao adicionar meta",
-        description: "Ocorreu um erro ao adicionar a meta.",
-        variant: "destructive"
-      });
+      console.error('Failed to add goal:', err);
     }
   };
-  
+
   // Update goal progress
-  const updateGoalProgress = async (goalId: string, newProgress: number) => {
+  const updateGoalProgress = async (id: string, progress: number) => {
+    if (!user) return;
+
+    const goalIndex = goals.findIndex(g => g.id === id);
+    if (goalIndex === -1) return;
+    
+    // Determine new status based on progress
+    let status = 'Em Progresso';
+    let statusColor = 'text-yellow-500';
+    
+    if (progress === 0) {
+      status = 'Não Iniciado';
+      statusColor = 'text-gray-500';
+    } else if (progress === 100) {
+      status = 'Concluído';
+      statusColor = 'text-green-500';
+    }
+    
+    const updatedGoal = {
+      ...goals[goalIndex],
+      progress,
+      status,
+      statusColor
+    };
+    
+    const updatedGoals = [...goals];
+    updatedGoals[goalIndex] = updatedGoal;
+    
+    // Update state first for immediate UI feedback
+    setGoals(updatedGoals);
+    calculateStats(updatedGoals);
+    
     try {
-      // Calculate new status based on progress
-      const newStatus = newProgress >= 100 
-        ? "Concluído" 
-        : newProgress > 75 
-        ? "Quase Concluído" 
-        : "Em Progresso";
-        
-      const newStatusColor = newProgress >= 100 
-        ? "text-green-500" 
-        : newProgress > 75
-        ? "text-green-500" 
-        : "text-yellow-500";
-      
-      if (tableExists) {
-        // Update in Supabase
-        const { error } = await supabase
-          .from('goals')
-          .update({ 
-            progress: newProgress,
-            status: newStatus,
-            statusColor: newStatusColor
-          })
-          .eq('id', goalId);
-          
-        if (error) {
-          throw error;
-        }
+      // Update in Supabase
+      const { error } = await supabase
+        .from('goals')
+        .update({ 
+          progress,
+          status,
+          statusColor
+        })
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating goal in Supabase:', error);
+        // Fallback to localStorage
+        localStorage.setItem(`goals_${user.id}`, JSON.stringify(updatedGoals));
       }
-      
-      // Update local state
-      setGoals(goals.map(goal => 
-        goal.id === goalId 
-          ? { 
-              ...goal, 
-              progress: newProgress,
-              status: newStatus,
-              statusColor: newStatusColor
-            } 
-          : goal
-      ));
-      
-      toast({
-        title: "Progresso atualizado",
-        description: "O progresso da meta foi atualizado com sucesso.",
-      });
     } catch (err) {
-      console.error('Error updating goal progress:', err);
-      toast({
-        title: "Erro ao atualizar progresso",
-        description: "Ocorreu um erro ao atualizar o progresso da meta.",
-        variant: "destructive"
-      });
+      console.error('Failed to update goal:', err);
+      localStorage.setItem(`goals_${user.id}`, JSON.stringify(updatedGoals));
     }
   };
-  
+
   // Remove a goal
-  const removeGoal = async (goalId: string) => {
+  const removeGoal = async (id: string) => {
+    if (!user) return;
+    
     try {
-      if (tableExists) {
-        const { error } = await supabase
-          .from('goals')
-          .delete()
-          .eq('id', goalId);
-          
-        if (error) {
-          throw error;
-        }
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error removing goal from Supabase:', error);
       }
       
-      setGoals(goals.filter(goal => goal.id !== goalId));
+      // Update state regardless of Supabase result
+      const updatedGoals = goals.filter(goal => goal.id !== id);
+      setGoals(updatedGoals);
+      calculateStats(updatedGoals);
       
-      toast({
-        title: "Meta removida",
-        description: "A meta foi removida com sucesso.",
-        variant: "destructive"
-      });
+      // Update localStorage
+      localStorage.setItem(`goals_${user.id}`, JSON.stringify(updatedGoals));
     } catch (err) {
-      console.error('Error removing goal:', err);
-      toast({
-        title: "Erro ao remover meta",
-        description: "Ocorreu um erro ao remover a meta.",
-        variant: "destructive"
-      });
+      console.error('Failed to remove goal:', err);
     }
   };
-  
-  // Calculate metrics
-  const completedGoalsCount = goals.filter(g => g.progress >= 100).length;
-  const recentlyCompletedCount = goals.filter(g => g.progress >= 100 && g.id.includes('new')).length;
-  const inProgressCount = goals.filter(g => g.progress < 100).length;
-  
-  // Calculate total progress for the main goal
-  const totalProgress = goals.length > 0
-    ? Math.min(
-        Math.round(goals.reduce((acc, goal) => acc + (goal.progress / goals.length), 0)),
-        100
-      )
-    : 0;
-  
-  return { 
-    goals, 
-    addGoal, 
-    updateGoalProgress, 
+
+  // Load goals when component mounts or user changes
+  useEffect(() => {
+    fetchGoals();
+  }, [user?.id]);
+
+  return {
+    goals,
+    isLoading,
+    addGoal,
+    updateGoalProgress,
     removeGoal,
     totalProgress,
     completedGoalsCount,
     recentlyCompletedCount,
     inProgressCount,
-    isLoading,
-    error
+    fetchGoals
   };
 };
