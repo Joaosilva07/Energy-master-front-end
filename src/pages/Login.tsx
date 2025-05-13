@@ -18,26 +18,37 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
-  console.log('Login attempted with:', { email, password });
 
   try {
-    const response = await axios.post('/login', { email, password });
-    
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, { email, password });
+
     if (response.status === 200) {
-      const { token } = response.data;
+      const { token, user } = response.data;
 
-      Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' }); 
+      Cookies.set('token', token, { expires: 1, secure: true, sameSite: 'strict' });
+      
 
+      toast({
+        title: 'Login bem-sucedido!',
+        description: `Bem-vindo, ${user.name}!`,
+      });
 
-
-      console.log('Login bem-sucedido!');
       navigate('/dashboard');
-
     }
   } catch (error: any) {
     console.error('Erro ao fazer login:', error);
     if (error.response && error.response.status === 401) {
-      console.log('Credenciais inválidas');
+      toast({
+        title: 'Erro',
+        description: 'Credenciais inválidas',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Erro',
+        description: 'Erro ao tentar fazer login',
+        variant: 'destructive',
+      });
     }
   }
 };

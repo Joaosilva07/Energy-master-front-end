@@ -22,14 +22,13 @@ const SignUp = () => {
   };
 
   try {
-   
-    const response = await fetch('/singup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(userData),
-    });
+   const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(userData),
+});
 
     if (!response.ok) {
       throw new Error('Erro ao criar usuário');
@@ -38,11 +37,9 @@ const SignUp = () => {
     const data = await response.json();
     console.log('Usuário criado com sucesso:', data);
 
-    
     navigate('/login');
   } catch (error) {
     console.error('Erro durante o cadastro:', error);
-    
   }
 };
 
