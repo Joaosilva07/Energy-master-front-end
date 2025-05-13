@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, Cloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddDeviceForm from '@/components/AddDeviceForm';
 import { useDevices } from '@/hooks/useDevices';
