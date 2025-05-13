@@ -1,14 +1,18 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Moon, Sun, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useTheme } from 'next-themes';
 import { useUser } from '@/contexts/UserContext';
+import { useTheme } from '@/components/ThemeProvider';
+import { toast } from '@/hooks/use-toast';
 
 const Header = () => {
-  const { theme, setTheme } = useTheme();
   const { user, logout } = useUser();
+  const { isDark, setIsDark } = useTheme();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    return localStorage.getItem('notifications-enabled') === 'true';
+  });
   
   const getInitials = (name: string) => {
     return name
@@ -18,23 +22,46 @@ const Header = () => {
       .toUpperCase();
   };
 
+  const toggleNotifications = () => {
+    const newState = !notificationsEnabled;
+    setNotificationsEnabled(newState);
+    localStorage.setItem('notifications-enabled', String(newState));
+    toast({
+      title: newState ? "Notificações ativadas" : "Notificações desativadas",
+      description: newState ? "Você receberá alertas sobre seu consumo energético" : "Você não receberá mais alertas",
+      duration: 3000,
+    });
+  };
+
+  const toggleDarkMode = () => {
+    setIsDark(!isDark);
+  };
+
   return (
     <header className="h-14 border-b bg-background px-6 flex items-center justify-between">
       <div>
         {/* Search or left-side content can go here */}
       </div>
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8"
+          onClick={toggleNotifications}
+        >
           <Bell className="h-4 w-4" />
+          {notificationsEnabled && (
+            <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full"></span>
+          )}
         </Button>
 
         <Button
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={toggleDarkMode}
         >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
 
         <DropdownMenu>

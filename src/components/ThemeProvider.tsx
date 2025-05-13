@@ -11,19 +11,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState(() => {
+  const [theme, setThemeState] = useState(() => {
     const savedTheme = localStorage.getItem('color-theme');
     return savedTheme || 'default';
   });
   
-  const [isDark, setIsDark] = useState(() => {
+  const [isDark, setIsDarkState] = useState(() => {
     const savedMode = localStorage.getItem('dark-mode');
     return savedMode === 'true';
   });
 
+  const setTheme = (newTheme: string) => {
+    setThemeState(newTheme);
+    localStorage.setItem('color-theme', newTheme);
+  };
+
+  const setIsDark = (newIsDark: boolean) => {
+    setIsDarkState(newIsDark);
+    localStorage.setItem('dark-mode', String(newIsDark));
+  };
+
   useEffect(() => {
-    localStorage.setItem('color-theme', theme);
-    
     // Apply the theme by updating CSS variables
     const root = document.documentElement;
     switch(theme) {
@@ -56,7 +64,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   }, [theme]);
 
   useEffect(() => {
-    localStorage.setItem('dark-mode', isDark.toString());
+    // Apply dark mode
     document.documentElement.classList.toggle('dark', isDark);
   }, [isDark]);
 

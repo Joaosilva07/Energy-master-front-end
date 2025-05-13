@@ -5,6 +5,8 @@ import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 import { useToast } from '@/hooks/use-toast';
 import { energyInsightsService } from '@/services/energyInsightsService';
 import { useDevices } from '@/hooks/useDevices';
+import { supabase } from '@/lib/supabase';
+import { v4 as uuidv4 } from '@supabase/supabase-js';
 
 const EnergySavingTips = () => {
   const { toast } = useToast();
@@ -12,37 +14,57 @@ const EnergySavingTips = () => {
   const { devices } = useDevices();
   const [isGenerating, setIsGenerating] = useState(false);
 
-  // Function to request AI-generated tips based on the user's data
-  const generateAITips = () => {
+  // Function to request AI-generated tips based on the user's data and save to DB
+  const generateAITips = async () => {
     setIsGenerating(true);
     
-    // In a real implementation, we would call an AI service API
-    // Here we use our existing service to generate recommendations
-    setTimeout(() => {
-      try {
-        // Generate new recommendations based on current device data
-        const newRecommendations = energyInsightsService.generateRecommendations(devices, new Date());
+    try {
+      // Generate new recommendations based on current device data
+      const newRecommendations = energyInsightsService.generateRecommendations(devices, new Date());
+      
+      // Trigger a refresh of the analysis data to incorporate the new recommendations
+      refreshAnalysis();
+      
+      // Save at least one recommendation to Supabase as a tip
+      if (newRecommendations.length > 0) {
+        const randomIndex = Math.floor(Math.random() * newRecommendations.length);
+        const tipToSave = newRecommendations[randomIndex];
         
-        // Trigger a refresh of the analysis data to incorporate the new recommendations
-        refreshAnalysis();
-        
-        toast({
-          title: "Dicas personalizadas geradas",
-          description: "Novas recomendações baseadas no seu consumo foram criadas",
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error("Erro ao gerar dicas:", error);
-        toast({
-          title: "Erro ao gerar dicas",
-          description: "Não foi possível gerar novas recomendações",
-          variant: "destructive",
-          duration: 3000,
-        });
-      } finally {
-        setIsGenerating(false);
+        // Create a tip record in the database
+        const { error } = await supabase
+          .from('tips')
+          .insert({
+            title: `Recomendação AI ${new Date().toLocaleDateString()}`,
+            description: tipToSave,
+            icon: 'lightbulb',
+            category: 'ai-generated',
+            featured: false,
+            created_at: new Date().toISOString()
+          });
+          
+        if (error) {
+          console.error("Erro ao salvar dica no banco de dados:", error);
+        } else {
+          console.log("Dica salva com sucesso no banco de dados");
+        }
       }
-    }, 1500);
+      
+      toast({
+        title: "Dicas personalizadas geradas",
+        description: "Novas recomendações baseadas no seu consumo foram criadas",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error("Erro ao gerar dicas:", error);
+      toast({
+        title: "Erro ao gerar dicas",
+        description: "Não foi possível gerar novas recomendações",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
   
   return (
