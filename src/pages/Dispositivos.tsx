@@ -20,6 +20,7 @@ const Dispositivos = () => {
   
   // Função para atualizar dados manualmente
   const handleRefresh = useCallback(() => {
+    console.log("Atualizando dispositivos manualmente...");
     fetchDevices();
     setLastUpdated(new Date());
     toast({
@@ -30,6 +31,8 @@ const Dispositivos = () => {
 
   // Refresh data periodically (every 30 seconds)
   useEffect(() => {
+    console.log("Montando componente Dispositivos, configurando refresh...");
+    
     // Set initial data
     fetchDevices();
     
@@ -38,12 +41,18 @@ const Dispositivos = () => {
     
     // Set up periodic refresh
     const refreshInterval = setInterval(() => {
+      console.log("Refresh automático dos dispositivos...");
       fetchDevices();
       setLastUpdated(new Date());
     }, 30000); // 30 seconds
     
-    return () => clearInterval(refreshInterval);
+    return () => {
+      console.log("Desmontando componente Dispositivos, limpando interval");
+      clearInterval(refreshInterval);
+    };
   }, [fetchDevices]);
+
+  console.log("Dispositivos renderizando com", devices.length, "dispositivos");
 
   return (
     <div className="flex h-screen bg-background">

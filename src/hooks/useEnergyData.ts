@@ -14,6 +14,8 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
 
   // Function to perform energy analysis
   const performAnalysis = () => {
+    console.log("Realizando análise de energia com", devices?.length || 0, "dispositivos");
+    
     if (!devices || devices.length === 0) {
       setAnalysisData(null);
       setHourlyData([]);
@@ -41,12 +43,14 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
 
   // Manually trigger analysis refresh
   const refreshAnalysis = () => {
+    console.log("Atualizando análise de energia manualmente");
     performAnalysis();
   };
 
   // Run analysis when devices change
   useEffect(() => {
     if (!isLoading) {
+      console.log("Dispositivos mudaram, atualizando análise...");
       // Process data with a slight delay to simulate AI processing
       const timer = setTimeout(performAnalysis, 600);
       return () => clearTimeout(timer);
@@ -55,8 +59,16 @@ export const useEnergyData = (devices: Device[], isLoading: boolean) => {
 
   // Set up periodic refresh (every 5 minutes)
   useEffect(() => {
-    const refreshInterval = setInterval(performAnalysis, 5 * 60 * 1000);
-    return () => clearInterval(refreshInterval);
+    console.log("Configurando refresh periódico da análise de energia");
+    const refreshInterval = setInterval(() => {
+      console.log("Refresh automático da análise de energia");
+      performAnalysis();
+    }, 5 * 60 * 1000);
+    
+    return () => {
+      console.log("Limpando intervalo de refresh da análise");
+      clearInterval(refreshInterval);
+    };
   }, [devices]);
 
   return {

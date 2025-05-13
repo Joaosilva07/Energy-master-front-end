@@ -11,7 +11,13 @@ import {
 
 export const useFetchDevices = () => {
   const { user } = useUser();
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<Device[]>(() => {
+    // Inicializar do localStorage durante a montagem do componente
+    if (user) {
+      return loadDevicesFromLocalStorage(user.id);
+    }
+    return [];
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchDevices = async () => {
@@ -42,7 +48,11 @@ export const useFetchDevices = () => {
       }
     } catch (err) {
       console.error('Failed to fetch devices:', err);
-      setDevices([]);
+      // Em caso de erro, tente usar dados do localStorage
+      if (user) {
+        const localDevices = loadDevicesFromLocalStorage(user.id);
+        setDevices(localDevices);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +60,17 @@ export const useFetchDevices = () => {
 
   // Load devices when component mounts or user changes
   useEffect(() => {
-    fetchDevices();
+    if (user) {
+      fetchDevices();
+    }
   }, [user?.id]);
+
+  // Sempre que os dispositivos mudarem, salve no localStorage
+  useEffect(() => {
+    if (user && devices.length > 0) {
+      saveDevicesToLocalStorage(user.id, devices);
+    }
+  }, [devices, user]);
 
   return {
     devices,
