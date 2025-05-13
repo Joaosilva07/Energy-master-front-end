@@ -9,6 +9,10 @@ import AlexaIntegration from '@/components/AlexaIntegration';
 import { useCloudConnection } from '@/hooks/useCloudConnection';
 import DeviceHeader from '@/components/devices/DeviceHeader';
 import DeviceTabs from '@/components/devices/DeviceTabs';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search } from 'lucide-react';
+import { deviceModels, searchDeviceModels, DeviceModel } from '@/utils/energyDataset';
 
 const Dispositivos = () => {
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
@@ -17,6 +21,9 @@ const Dispositivos = () => {
   const { devices, addDevice, toggleDevicePower, removeDevice, fetchDevices, updateDeviceStatus } = useDevices();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isProcessingToggle, setIsProcessingToggle] = useState(false);
+  const [showingModelSearch, setShowingModelSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredModels, setFilteredModels] = useState<DeviceModel[]>([]);
   const { toast } = useToast();
   
   // Cloud integration
@@ -28,6 +35,11 @@ const Dispositivos = () => {
       updateDeviceStatus(deviceId, newPowerState);
     }
   });
+  
+  // Update filtered models when search query changes
+  useEffect(() => {
+    setFilteredModels(searchDeviceModels(searchQuery));
+  }, [searchQuery]);
   
   // Manual refresh function
   const handleRefresh = useCallback(() => {
@@ -115,6 +127,84 @@ const Dispositivos = () => {
             lastUpdated={lastUpdated}
             cloudConnection={cloudConnection}
           />
+
+          <div className="mb-6 flex items-center justify-end">
+            <button 
+              className={`px-3 py-1.5 text-sm font-medium rounded-md flex items-center gap-1.5 ${
+                showingModelSearch ? "bg-energy-primary text-white" : "bg-muted text-muted-foreground"
+              }`}
+              onClick={() => setShowingModelSearch(!showingModelSearch)}
+            >
+              <Search className="h-4 w-4" />
+              Modelos de Dispositivos
+            </button>
+          </div>
+
+          {showingModelSearch && (
+            <div className="mb-6">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Search className="h-5 w-5 text-energy-primary" />
+                    Consultar Modelos de Dispositivos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <Input 
+                      placeholder="Busque por fabricante, modelo ou tipo..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="mb-4"
+                    />
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left font-medium">Fabricante</th>
+                            <th className="py-2 text-left font-medium">Modelo</th>
+                            <th className="py-2 text-left font-medium">Tipo</th>
+                            <th className="py-2 text-left font-medium">Consumo Médio</th>
+                            <th className="py-2 text-left font-medium">Consumo em Standby</th>
+                            <th className="py-2 text-left font-medium">Classe Energética</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredModels.length > 0 ? (
+                            filteredModels.map((model) => (
+                              <tr key={model.id} className="border-b border-gray-100">
+                                <td className="py-2">{model.manufacturer}</td>
+                                <td className="py-2">{model.model}</td>
+                                <td className="py-2 capitalize">{model.type}</td>
+                                <td className="py-2">{model.averageConsumption} W</td>
+                                <td className="py-2">{model.standbyConsumption} W</td>
+                                <td className="py-2">
+                                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    model.energyClass.includes('A') ? 'bg-green-100 text-green-700' : 
+                                    model.energyClass.includes('B') ? 'bg-blue-100 text-blue-700' : 
+                                    'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {model.energyClass}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={6} className="py-4 text-center text-muted-foreground">
+                                Nenhum modelo encontrado com os critérios de pesquisa.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <DeviceTabs 
             devices={devices}

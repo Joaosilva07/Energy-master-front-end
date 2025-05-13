@@ -1,30 +1,47 @@
 
 import React, { useState } from 'react';
 import { LightbulbIcon, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 import { useToast } from '@/hooks/use-toast';
+import { energyInsightsService } from '@/services/energyInsightsService';
+import { useDevices } from '@/hooks/useDevices';
 
 const EnergySavingTips = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const { analysisData } = useEnergyAnalysis();
+  const { analysisData, refreshAnalysis } = useEnergyAnalysis();
+  const { devices } = useDevices();
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Function to request AI-generated tips based on the user's data
   const generateAITips = () => {
     setIsGenerating(true);
     
-    // Simulate AI tip generation with a timeout
-    // In a real implementation, this would be an API call to an AI service
+    // In a real implementation, we would call an AI service API
+    // Here we use our existing service to generate recommendations
     setTimeout(() => {
-      setIsGenerating(false);
-      navigate('/dicas');
-      toast({
-        title: "Dicas personalizadas geradas",
-        description: "Confira suas novas recomendações baseadas no seu consumo",
-        duration: 3000,
-      });
+      try {
+        // Generate new recommendations based on current device data
+        const newRecommendations = energyInsightsService.generateRecommendations(devices, new Date());
+        
+        // Trigger a refresh of the analysis data to incorporate the new recommendations
+        refreshAnalysis();
+        
+        toast({
+          title: "Dicas personalizadas geradas",
+          description: "Novas recomendações baseadas no seu consumo foram criadas",
+          duration: 3000,
+        });
+      } catch (error) {
+        console.error("Erro ao gerar dicas:", error);
+        toast({
+          title: "Erro ao gerar dicas",
+          description: "Não foi possível gerar novas recomendações",
+          variant: "destructive",
+          duration: 3000,
+        });
+      } finally {
+        setIsGenerating(false);
+      }
     }, 1500);
   };
   
