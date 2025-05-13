@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -29,7 +30,6 @@ const SignUp = () => {
             name,
           },
           emailRedirectTo: window.location.origin,
-          emailConfirmation: false
         },
       });
 
