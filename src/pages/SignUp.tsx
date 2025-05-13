@@ -39,8 +39,16 @@ const SignUp = () => {
 
       toast({
         title: 'Conta criada com sucesso!',
-        description: 'Você já pode fazer login com suas credenciais.',
+        description: 'Verifique seu email para confirmar sua conta antes de fazer login.',
       });
+
+      // Show more detailed message
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: 'Confirmação de email necessária',
+          description: 'Um email de confirmação foi enviado para ' + email + '. Por favor, verifique sua caixa de entrada e clique no link de confirmação antes de fazer login.',
+        });
+      }
 
       navigate('/login');
     } catch (error: any) {

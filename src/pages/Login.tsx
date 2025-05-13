@@ -29,6 +29,30 @@ const Login = () => {
       });
 
       if (error) {
+        // Handle email not confirmed error specifically
+        if (error.message?.includes('Email not confirmed') || error.code === 'email_not_confirmed') {
+          toast({
+            title: 'Email não confirmado',
+            description: 'Por favor, verifique seu email e clique no link de confirmação antes de fazer login.',
+            variant: 'destructive',
+          });
+          
+          // Optionally, offer to resend confirmation email
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+          });
+          
+          if (!resendError) {
+            toast({
+              title: 'Email de confirmação enviado',
+              description: 'Um novo email de confirmação foi enviado para seu endereço.',
+            });
+          }
+          
+          throw new Error('Email não confirmado. Por favor, verifique sua caixa de entrada.');
+        }
+        
         throw error;
       }
 
