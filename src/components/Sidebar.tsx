@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, Home, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquare } from 'lucide-react';
@@ -74,10 +73,10 @@ const Sidebar = () => {
   return (
     <div className="h-screen w-56 border-r bg-sidebar flex flex-col">
       <div className="flex h-14 items-center border-b px-4">
-        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 font-semibold text-energy-primary">
+        <a href="/" className="flex items-center gap-2 font-semibold text-energy-primary">
           <ZapIcon className="h-5 w-5" />
           <span>EnergyMaster</span>
-        </Link>
+        </a>
       </div>
       <div className="px-2 py-4 flex-grow">
         {user && (

@@ -46,7 +46,7 @@ const Header = () => {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => navigate('/')}
+          onClick={() => window.location.href = '/'}
           title="Ir para a página inicial"
         >
           <Home className="h-4 w-4" />
