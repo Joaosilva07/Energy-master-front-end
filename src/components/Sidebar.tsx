@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/contexts/UserContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -13,7 +11,7 @@ const Sidebar = () => {
   const { user } = useUser();
   
   const menuItems = [
-    { icon: BarChart3, label: 'Dashboard', path: '/' },
+    { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
     { icon: ZapIcon, label: 'Consumo', path: '/consumo' },
     { icon: Cpu, label: 'Dispositivos', path: '/dispositivos' },
     { icon: LightbulbIcon, label: 'Dicas', path: '/dicas' },
@@ -74,7 +72,7 @@ const Sidebar = () => {
   return (
     <div className="h-screen w-56 border-r bg-sidebar flex flex-col">
       <div className="flex h-14 items-center border-b px-4">
-        <Link to="/" className="flex items-center gap-2 font-semibold text-energy-primary">
+        <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 font-semibold text-energy-primary">
           <ZapIcon className="h-5 w-5" />
           <span>EnergyMaster</span>
         </Link>
