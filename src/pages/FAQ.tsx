@@ -1,137 +1,93 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import { 
-  MessageSquareQuestion, 
-  HelpCircle, 
-  Settings, 
-  User, 
-  Book 
-} from "lucide-react";
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from "@/components/ui/accordion";
+import { MessageSquare } from "lucide-react";
+import Sidebar from '@/components/Sidebar';
+import { useUser } from '@/contexts/UserContext';
 
 const FAQ = () => {
-  const faqSections = [
+  const { user } = useUser();
+
+  const faqItems = [
     {
-      title: "Geral",
-      icon: HelpCircle,
-      questions: [
-        {
-          question: "O que é o EnergyMaster?",
-          answer: "O EnergyMaster é uma plataforma de monitoramento e otimização do consumo de energia residencial. Nós ajudamos você a entender e gerenciar seu consumo de energia de forma mais eficiente e econômica."
-        },
-        {
-          question: "Como o EnergyMaster funciona?",
-          answer: "Nossa plataforma se conecta aos dispositivos da sua residência para coletar dados de consumo em tempo real. Através de análise de dados e inteligência artificial, transformamos essas informações em insights e recomendações personalizadas para ajudar você a economizar energia."
-        },
-        {
-          question: "Quais são os benefícios de usar o EnergyMaster?",
-          answer: "Os principais benefícios incluem: redução no consumo de energia, economia financeira nas contas de luz, monitoramento de dispositivos em tempo real, criação de metas de economia, acesso a dicas personalizadas e integração com assistentes de voz."
-        }
-      ]
+      question: "O que é o EnergyMaster?",
+      answer: "O EnergyMaster é uma plataforma de monitoramento e gestão de energia que ajuda a controlar o consumo de energia de seus dispositivos e a economizar em suas contas de energia."
     },
     {
-      title: "Dispositivos",
-      icon: Settings,
-      questions: [
-        {
-          question: "Quais dispositivos são compatíveis com o EnergyMaster?",
-          answer: "O EnergyMaster é compatível com a maioria dos dispositivos inteligentes do mercado, incluindo tomadas inteligentes, lâmpadas, termostatos, eletrodomésticos com Wi-Fi e medidores de energia. Consulte nossa lista completa de compatibilidade em 'Configurações > Dispositivos'."
-        },
-        {
-          question: "Como adicionar um novo dispositivo?",
-          answer: "Para adicionar um novo dispositivo, acesse a página 'Dispositivos', clique em 'Adicionar Dispositivo' e siga as instruções para conectar seu dispositivo à plataforma. O processo geralmente leva menos de 5 minutos."
-        },
-        {
-          question: "O que fazer se um dispositivo não estiver se conectando?",
-          answer: "Se um dispositivo não estiver se conectando, verifique se ele está ligado e dentro do alcance da sua rede Wi-Fi. Certifique-se de que suas credenciais Wi-Fi estão corretas e tente reiniciar o dispositivo. Se o problema persistir, consulte nosso guia de solução de problemas em 'Configurações > Suporte'."
-        }
-      ]
+      question: "Como o EnergyMaster ajuda a economizar energia?",
+      answer: "O EnergyMaster monitora o consumo de energia de seus dispositivos, fornece relatórios detalhados, recomendações personalizadas e permite definir metas de economia, ajudando você a identificar e reduzir o desperdício de energia."
     },
     {
-      title: "Conta e Privacidade",
-      icon: User,
-      questions: [
-        {
-          question: "Como criar uma conta no EnergyMaster?",
-          answer: "Para criar uma conta, clique em 'Cadastrar' na página inicial e preencha o formulário com seu e-mail e uma senha. Após verificar seu e-mail, você poderá começar a configurar sua casa no EnergyMaster."
-        },
-        {
-          question: "O EnergyMaster é seguro? Como vocês protegem meus dados?",
-          answer: "Sim, o EnergyMaster é seguro. Utilizamos criptografia de ponta a ponta para proteger seus dados e não compartilhamos suas informações com terceiros sem sua permissão explícita. Nossa política de privacidade detalha como coletamos, usamos e protegemos seus dados."
-        },
-        {
-          question: "Como excluir minha conta?",
-          answer: "Para excluir sua conta, acesse 'Configurações > Conta > Excluir Conta'. Ao excluir sua conta, todos os seus dados serão permanentemente removidos dos nossos servidores após 30 dias."
-        }
-      ]
+      question: "Quais dispositivos são compatíveis com o EnergyMaster?",
+      answer: "O EnergyMaster é compatível com uma ampla variedade de dispositivos inteligentes, incluindo termostatos, iluminação, eletrodomésticos e outros dispositivos IoT que podem ser conectados à internet."
     },
     {
-      title: "Recursos e Funcionalidades",
-      icon: Book,
-      questions: [
-        {
-          question: "Como funciona o sistema de metas?",
-          answer: "O sistema de metas permite que você estabeleça objetivos de redução de consumo. Você pode criar metas específicas para dispositivos ou para toda a casa. O EnergyMaster monitora seu progresso e oferece dicas para ajudá-lo a alcançar suas metas."
-        },
-        {
-          question: "Como a integração com Alexa funciona?",
-          answer: "A integração com Alexa permite que você controle seus dispositivos e acesse informações sobre seu consumo de energia através de comandos de voz. Para configurar, acesse 'Configurações > Integrações > Alexa' e siga as instruções."
-        },
-        {
-          question: "Como obter suporte técnico?",
-          answer: "Para obter suporte técnico, você pode acessar nossa base de conhecimento em 'Configurações > Suporte', enviar um e-mail para suporte@energymaster.com ou utilizar nosso chat ao vivo disponível de segunda a sexta, das 9h às 18h."
-        }
-      ]
+      question: "É necessário hardware especializado para usar o EnergyMaster?",
+      answer: "Para funcionalidades básicas, não é necessário hardware especializado. No entanto, para monitoramento mais detalhado, recomendamos o uso de dispositivos inteligentes compatíveis ou medidores de energia específicos que podem se integrar à nossa plataforma."
+    },
+    {
+      question: "Como posso começar a usar o EnergyMaster?",
+      answer: "Basta criar uma conta, configurar seu perfil e começar a adicionar seus dispositivos. Nossa interface intuitiva guiará você pelo processo de configuração, e você poderá começar a monitorar seu consumo de energia imediatamente."
+    },
+    {
+      question: "O EnergyMaster funciona com assistentes de voz como Alexa e Google Assistant?",
+      answer: "Sim, o EnergyMaster pode ser integrado com assistentes de voz populares, permitindo que você controle seus dispositivos e verifique informações de consumo usando comandos de voz."
+    },
+    {
+      question: "É possível definir metas de economia de energia?",
+      answer: "Sim, o EnergyMaster permite que você defina metas personalizadas de economia de energia e acompanhe seu progresso ao longo do tempo. Nossa plataforma fornecerá dicas e sugestões para ajudá-lo a atingir suas metas."
+    },
+    {
+      question: "Como posso obter suporte técnico?",
+      answer: "Oferecemos suporte técnico por meio de nosso sistema de tickets, e-mail e chat ao vivo durante o horário comercial. Também temos uma extensa base de conhecimento e fóruns da comunidade onde você pode encontrar respostas para perguntas comuns."
     }
   ];
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-background">
       <Sidebar />
-      <div className="flex flex-col flex-1 overflow-y-auto">
-        <Header />
-        <main className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                <MessageSquareQuestion className="h-6 w-6 text-energy-primary" />
-                Perguntas Frequentes
-              </h1>
-              <p className="text-muted-foreground">
-                Encontre respostas para as dúvidas mais comuns sobre o EnergyMaster
-              </p>
+      <main className="flex-1 overflow-y-auto p-6">
+        <div className="container mx-auto">
+          <div className="mb-8 flex items-center gap-3">
+            <MessageSquare className="h-6 w-6 text-energy-primary" />
+            <h1 className="text-3xl font-bold">Perguntas Frequentes</h1>
+          </div>
+
+          <div className="grid gap-8">
+            <div className="rounded-lg border bg-card p-6 shadow-sm">
+              <Accordion type="single" collapsible className="w-full">
+                {faqItems.map((item, index) => (
+                  <AccordionItem key={index} value={`item-${index}`}>
+                    <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
+                    <AccordionContent>{item.answer}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             </div>
 
-            <div className="space-y-8">
-              {faqSections.map((section, index) => {
-                const Icon = section.icon;
-                return (
-                  <Card key={index}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Icon className="h-5 w-5 text-energy-primary" />
-                        {section.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {section.questions.map((item, qIndex) => (
-                          <div key={qIndex}>
-                            <h3 className="font-medium text-lg mb-2">{item.question}</h3>
-                            <p className="text-muted-foreground">{item.answer}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+            <div className="rounded-lg border bg-card p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-semibold">Não encontrou o que procurava?</h2>
+              <p className="mb-4 text-muted-foreground">
+                Entre em contato com nossa equipe de suporte e teremos prazer em ajudar.
+              </p>
+              <div className="flex space-x-4">
+                <a href="mailto:suporte@energymaster.com" className="text-energy-primary hover:underline">
+                  suporte@energymaster.com
+                </a>
+                <span className="text-muted-foreground">|</span>
+                <a href="tel:+551199999999" className="text-energy-primary hover:underline">
+                  (11) 9999-9999
+                </a>
+              </div>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

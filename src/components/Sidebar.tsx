@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquareHelp } from 'lucide-react';
+import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/contexts/UserContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,7 +20,7 @@ const Sidebar = () => {
     { icon: Target, label: 'Metas', path: '/metas' },
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
     { icon: Info, label: 'Sobre Nós', path: '/sobrenos' },
-    { icon: MessageSquareHelp, label: 'FAQ', path: '/faq' },
+    { icon: MessageSquare, label: 'FAQ', path: '/faq' },
   ];
 
   // Get stored device data for the current user

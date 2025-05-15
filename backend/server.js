@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -5,11 +6,13 @@ import dotenv from 'dotenv';
 import detectPort from 'detect-port';
 import pool from './config/db.js'; // Importa a configuração do banco de dados
 
+// Carrega as variáveis de ambiente
 dotenv.config();
 
 const app = express();
 const DEFAULT_PORT = 8080;
 
+// Configuração de middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -17,7 +20,7 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// Rota para registrar um novo usuário
 app.post('/api/auth/register', async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -38,20 +41,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-  try {
-   
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-      [name, email, password]
-    );
-
-    res.status(201).json({ message: 'Usuário criado com sucesso', user: result.rows[0] });
-  } catch (error) {
-    console.error('Erro ao registrar usuário:', error);
-    res.status(500).json({ message: 'Erro ao registrar usuário' });
-  }
-
-
+// Rota para fazer login
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -75,6 +65,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Inicia o servidor
 detectPort(DEFAULT_PORT).then((port) => {
   if (port !== DEFAULT_PORT) {
     console.log(`Porta ${DEFAULT_PORT} já está em uso. Usando a porta ${port} em vez disso.`);

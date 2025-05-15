@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const { getUserByEmail, createUser } = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 
+// Controlador para registrar um novo usuário
 const registerUser = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -11,17 +12,17 @@ const registerUser = async (req, res) => {
   }
 
   try {
- 
+    // Verifica se o email já está registrado
     const existingUser = await getUserByEmail(email);
 
     if (existingUser.length > 0) {
       return res.status(400).json({ error: 'E-mail já registrado' });
     }
 
-   
+    // Hash da senha antes de salvar
     const hashedPassword = await bcrypt.hash(password, 10);
 
-  
+    // Cria o novo usuário
     await createUser(username, email, hashedPassword);
 
     res.status(201).json({ message: 'Usuário registrado com sucesso' });
@@ -31,6 +32,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+// Controlador para autenticar um usuário
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
