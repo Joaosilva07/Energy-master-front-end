@@ -60,7 +60,7 @@ const Home = () => {
         <div 
           className="absolute inset-0 z-[-1] bg-cover bg-center bg-fixed" 
           style={{ 
-            backgroundImage: 'url(/images/energymaster-background.jpg)',
+            backgroundImage: 'url(/images/back-view-family-watching-tv.jpg)',
             backgroundSize: 'cover',
           }}
         ></div>
