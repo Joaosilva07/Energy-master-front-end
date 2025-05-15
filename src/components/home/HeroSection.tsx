@@ -15,6 +15,7 @@ const HeroSection = () => {
         style={{ 
           backgroundImage: 'url(/images/back-view-family-watching-tv.jpg)',
           backgroundSize: 'cover',
+          backgroundPosition: 'center bottom',
         }}
       ></div>
       
