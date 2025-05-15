@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -57,6 +57,15 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex">
+      {/* Back to Home Button */}
+      <button 
+        onClick={() => navigate('/')} 
+        className="absolute top-4 left-4 z-10 flex items-center gap-2 text-sm font-medium hover:text-energy-primary transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar para Home
+      </button>
+      
       {/* Left Side - Welcome Banner */}
       <div className="w-1/2 bg-energy-primary p-8 flex flex-col items-center justify-center text-white">
         <h1 className="text-4xl font-bold mb-4">Bem vindo de volta!!</h1>

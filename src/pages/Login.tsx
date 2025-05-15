@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -95,6 +94,15 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
+      {/* Back to Home Button */}
+      <button 
+        onClick={() => navigate('/')} 
+        className="absolute top-4 left-4 z-10 flex items-center gap-2 text-sm font-medium hover:text-energy-primary transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Voltar para Home
+      </button>
+
       {/* Left Side - Login Form */}
       <div className="w-1/2 p-8 flex flex-col justify-center">
         <div className="max-w-md w-full mx-auto space-y-8">
