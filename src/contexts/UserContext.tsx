@@ -44,8 +44,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(userData);
         localStorage.setItem('isAuthenticated', 'true');
+        sessionStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify(userData));
       } else {
-        localStorage.removeItem('isAuthenticated');
+        clearAuthState();
       }
       
       setIsLoading(false);
@@ -66,9 +68,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(userData);
           localStorage.setItem('isAuthenticated', 'true');
+          sessionStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('user', JSON.stringify(userData));
         } else {
-          setUser(null);
-          localStorage.removeItem('isAuthenticated');
+          clearAuthState();
         }
         
         setIsLoading(false);
@@ -81,13 +84,18 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  const clearAuthState = () => {
+    setUser(null);
+    localStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user');
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
-      setUser(null);
-      setSession(null);
-      localStorage.removeItem('isAuthenticated');
-      navigate('/login');
+      clearAuthState();
+      navigate('/');
       
       toast({
         title: "Logout bem-sucedido",

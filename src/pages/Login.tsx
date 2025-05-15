@@ -71,13 +71,15 @@ const Login = () => {
           description: `Bem-vindo, ${userData.name || userData.email}!`,
         });
 
-        // Set authentication state in localStorage
+        // Set authentication state in localStorage and sessionStorage
         localStorage.setItem('isAuthenticated', 'true');
+        sessionStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify(userData));
         
         console.log("Login successful, navigating to dashboard...");
         
         // Use navigate with replace option to prevent going back to login
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);
