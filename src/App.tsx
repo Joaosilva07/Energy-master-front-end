@@ -12,10 +12,11 @@ import Dispositivos from "./pages/Dispositivos";
 import Dicas from "./pages/Dicas";
 import Metas from "./pages/Metas";
 import Configuracoes from "./pages/Configuracoes";
+import SobreNos from "./pages/SobreNos";
+import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { UserProvider } from "./contexts/UserContext";
-import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,8 @@ const App = () => (
                   <Configuracoes />
                 </ProtectedRoute>
               } />
+              <Route path="/sobrenos" element={<SobreNos />} />
+              <Route path="/faq" element={<FAQ />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </UserProvider>
