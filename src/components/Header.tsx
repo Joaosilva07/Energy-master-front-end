@@ -46,7 +46,7 @@ const Header = () => {
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={() => window.location.href = '/'}
+          onClick={() => navigate('/')}
           title="Ir para a página inicial"
         >
           <Home className="h-4 w-4" />
@@ -88,7 +88,7 @@ const Header = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {user && <DropdownMenuItem className="font-medium">{user.name}</DropdownMenuItem>}
-            <DropdownMenuItem onClick={() => window.location.href = '/configuracoes'}>
+            <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
               Configurações
             </DropdownMenuItem>
             <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>

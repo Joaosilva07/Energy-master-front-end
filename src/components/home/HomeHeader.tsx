@@ -36,6 +36,20 @@ const HomeHeader = () => {
               >
                 Dashboard
               </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/consumo')}
+              >
+                Consumo
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/dicas')}
+              >
+                Dicas
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
