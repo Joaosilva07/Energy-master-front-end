@@ -51,6 +51,17 @@ const Header = () => {
         >
           <Home className="h-4 w-4" />
         </Button>
+        
+        {user && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/user-home')}
+            className="ml-2"
+          >
+            Área do Usuário
+          </Button>
+        )}
       </div>
       <div className="flex items-center gap-4">
         <Button 

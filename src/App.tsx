@@ -16,6 +16,7 @@ import SobreNos from "./pages/SobreNos";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import Home from "./pages/Home";
+import UserHome from "./pages/UserHome";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { UserProvider } from "./contexts/UserContext";
 import { useEffect } from "react";
@@ -74,6 +75,11 @@ const App = () => {
             <UserProvider>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/user-home" element={
+                  <ProtectedRoute>
+                    <UserHome />
+                  </ProtectedRoute>
+                } />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/dashboard" element={

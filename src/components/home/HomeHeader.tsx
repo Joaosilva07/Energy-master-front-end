@@ -2,23 +2,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Home as HomeIcon, User } from 'lucide-react';
+import { Home as HomeIcon } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const HomeHeader = () => {
   const navigate = useNavigate();
-  const { user, logout } = useUser();
+  const { user } = useUser();
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase();
-  };
-
+  // If user is logged in, they'll be redirected to user-home, but let's handle it anyway
   return (
     <header className="fixed w-full z-50 bg-background/80 backdrop-blur-sm border-b">
       <div className="container mx-auto py-3 px-4 flex items-center justify-between">
@@ -32,54 +23,17 @@ const HomeHeader = () => {
               <Button 
                 variant="ghost" 
                 size="sm" 
+                onClick={() => navigate('/user-home')}
+              >
+                Área do Usuário
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
                 onClick={() => navigate('/dashboard')}
               >
                 Dashboard
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/consumo')}
-              >
-                Consumo
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dicas')}
-              >
-                Dicas
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dispositivos')}
-              >
-                Dispositivos
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/metas')}
-              >
-                Metas
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                  <DropdownMenuItem className="font-medium">{user.name}</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
-                    Configurações
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>Sair</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </>
           ) : (
             <>
