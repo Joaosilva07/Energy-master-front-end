@@ -21,7 +21,7 @@ const Home = () => {
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-energy-primary to-energy-secondary">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-energy-primary to-energy-secondary px-2">
               EnergyMaster
             </h1>
             
