@@ -50,6 +50,20 @@ const HomeHeader = () => {
               >
                 Dicas
               </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/dispositivos')}
+              >
+                Dispositivos
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate('/metas')}
+              >
+                Metas
+              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -58,7 +72,7 @@ const HomeHeader = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-white dark:bg-gray-800 border dark:border-gray-700">
                   <DropdownMenuItem className="font-medium">{user.name}</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/configuracoes')}>
                     Configurações
