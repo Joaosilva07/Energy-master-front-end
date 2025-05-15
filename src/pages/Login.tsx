@@ -75,10 +75,10 @@ const Login = () => {
         sessionStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('user', JSON.stringify(userData));
         
-        console.log("Login successful, navigating to dashboard...");
+        console.log("Login successful, navigating to user-home...");
         
         // Use navigate with replace option to prevent going back to login
-        navigate('/dashboard', { replace: true });
+        navigate('/user-home', { replace: true });
       }
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);

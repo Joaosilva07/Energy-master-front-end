@@ -1,18 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
 import Header from '@/components/Header';
 import HomeFooter from '@/components/home/HomeFooter';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Zap, Settings, BarChart3, Calendar, Target, Heart, Star } from 'lucide-react';
+import { MessageSquare, Zap, Settings, BarChart3, Calendar, Target, Heart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
+import ScheduleMonitoring from '@/components/scheduling/ScheduleMonitoring';
+import FeedbackDialog from '@/components/feedback/FeedbackDialog';
 
 const UserHome = () => {
   const { user } = useUser();
   const navigate = useNavigate();
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +106,11 @@ const UserHome = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Schedule Monitoring Section */}
+        <div className="mb-12">
+          <ScheduleMonitoring />
+        </div>
         
         <h2 className="text-2xl font-bold mb-6 text-center">Ações Rápidas</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-12">
@@ -134,6 +142,7 @@ const UserHome = () => {
             <CardContent>
               <Button 
                 variant="outline" 
+                onClick={() => navigate('#schedule')}
                 className="w-full"
               >
                 Configurar Horários
@@ -169,9 +178,10 @@ const UserHome = () => {
             <CardContent>
               <Button 
                 variant="outline"
+                onClick={() => setFeedbackDialogOpen(true)}
                 className="w-full"
               >
-                Enviar Comentário
+                Enviar Feedback Detalhado
               </Button>
             </CardContent>
           </Card>
@@ -193,23 +203,6 @@ const UserHome = () => {
               </Button>
             </CardContent>
           </Card>
-          
-          <Card className="shadow-md hover:shadow-lg transition-all">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="h-4 w-4 text-amber-500" />
-                Avalie o EnergyMaster
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                variant="outline"
-                className="w-full"
-              >
-                Deixar Avaliação
-              </Button>
-            </CardContent>
-          </Card>
         </div>
         
         <div className="max-w-2xl mx-auto mb-12 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-md">
@@ -224,11 +217,24 @@ const UserHome = () => {
               placeholder="Escreva seu comentário aqui..."
               required
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setFeedbackDialogOpen(true)}
+              >
+                Deseja nos dar mais detalhes?
+              </Button>
               <Button type="submit">Enviar Comentário</Button>
             </div>
           </form>
         </div>
+
+        {/* Feedback Dialog */}
+        <FeedbackDialog 
+          open={feedbackDialogOpen} 
+          onOpenChange={setFeedbackDialogOpen} 
+        />
       </div>
       
       <HomeFooter />
