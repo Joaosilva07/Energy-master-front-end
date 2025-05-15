@@ -6,12 +6,12 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { MessageSquare } from "lucide-react";
-import Sidebar from '@/components/Sidebar';
-import { useUser } from '@/contexts/UserContext';
+import { MessageSquare, ZapIcon, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from 'react-router-dom';
 
 const FAQ = () => {
-  const { user } = useUser();
+  const navigate = useNavigate();
 
   const faqItems = [
     {
@@ -49,40 +49,79 @@ const FAQ = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="container mx-auto">
-          <div className="mb-8 flex items-center gap-3">
-            <MessageSquare className="h-6 w-6 text-energy-primary" />
-            <h1 className="text-3xl font-bold">Perguntas Frequentes</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <header className="fixed w-full z-50 bg-background/80 backdrop-blur-sm border-b">
+        <div className="container mx-auto py-3 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ZapIcon className="h-5 w-5 text-energy-primary" />
+            <span className="font-semibold">EnergyMaster</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/')}
+            >
+              Home
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/sobrenos')}
+            >
+              Sobre Nós
+            </Button>
+          </div>
+        </div>
+      </header>
+      
+      <main className="container mx-auto pt-24 px-4 pb-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <MessageSquare className="h-8 w-8 text-energy-primary" />
+            <h1 className="text-4xl font-bold">Perguntas Frequentes</h1>
           </div>
 
           <div className="grid gap-8">
-            <div className="rounded-lg border bg-card p-6 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-100 dark:border-gray-700">
+              <p className="text-lg mb-6">
+                Encontre respostas para as perguntas mais comuns sobre o EnergyMaster e como ele pode ajudar você a economizar energia.
+              </p>
+              
               <Accordion type="single" collapsible className="w-full">
                 {faqItems.map((item, index) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
-                    <AccordionContent>{item.answer}</AccordionContent>
+                  <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200 dark:border-gray-700">
+                    <AccordionTrigger className="text-left py-4 font-medium">{item.question}</AccordionTrigger>
+                    <AccordionContent className="pb-4 text-muted-foreground">{item.answer}</AccordionContent>
                   </AccordionItem>
                 ))}
               </Accordion>
             </div>
 
-            <div className="rounded-lg border bg-card p-6 shadow-sm">
-              <h2 className="mb-4 text-xl font-semibold">Não encontrou o que procurava?</h2>
-              <p className="mb-4 text-muted-foreground">
-                Entre em contato com nossa equipe de suporte e teremos prazer em ajudar.
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-lg p-6">
+              <h2 className="text-2xl font-semibold mb-4">Ainda tem dúvidas?</h2>
+              <p className="mb-6 text-muted-foreground">
+                Se você não encontrou a resposta para sua pergunta, entre em contato com nossa equipe de suporte.
               </p>
-              <div className="flex space-x-4">
-                <a href="mailto:suporte@energymaster.com" className="text-energy-primary hover:underline">
-                  suporte@energymaster.com
-                </a>
-                <span className="text-muted-foreground">|</span>
-                <a href="tel:+551199999999" className="text-energy-primary hover:underline">
-                  (11) 9999-9999
-                </a>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button 
+                  className="bg-energy-primary hover:bg-energy-primary/90"
+                  onClick={() => window.location.href = 'mailto:suporte@energymaster.com'}
+                >
+                  Enviar e-mail
+                </Button>
+                <Button
+                  variant="outline"
+                >
+                  Chat com suporte
+                </Button>
               </div>
             </div>
           </div>

@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ZapIcon, LightbulbIcon, BarChart3, Target, ArrowRight, ArrowLeft, Home as HomeIcon } from 'lucide-react';
+import { ZapIcon, LightbulbIcon, BarChart3, Target, ArrowRight, Home as HomeIcon } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const Home = () => {
@@ -22,18 +22,30 @@ const Home = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex items-center gap-2"
               onClick={() => navigate('/login')}
             >
-              Login <ArrowRight className="h-4 w-4" />
+              Login
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="flex items-center gap-2"
               onClick={() => navigate('/signup')}
             >
-              Registrar <ArrowRight className="h-4 w-4" />
+              Registrar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/sobrenos')}
+            >
+              Sobre Nós
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/faq')}
+            >
+              FAQ
             </Button>
           </div>
         </div>
@@ -44,18 +56,18 @@ const Home = () => {
         <div className="absolute inset-0 z-0 bg-black/40"></div>
         <div 
           className="absolute inset-0 z-[-1] bg-cover bg-center" 
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80)' }}
+          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?auto=format&fit=crop&q=80)' }}
         ></div>
         
         <div className="container relative z-10 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center">
             <div className="flex justify-center mb-6">
-              <div className="rounded-full bg-white/10 backdrop-blur-sm p-6">
-                <ZapIcon className="h-16 w-16 text-energy-primary" />
+              <div className="rounded-full bg-gradient-to-r from-energy-primary to-energy-secondary p-6">
+                <ZapIcon className="h-16 w-16 text-white" />
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-energy-primary to-energy-secondary px-4">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 text-white px-4">
               EnergyMaster
             </h1>
             
