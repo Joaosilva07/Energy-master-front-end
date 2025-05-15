@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -53,10 +52,16 @@ const Home = () => {
       
       {/* Hero Section with Background Image */}
       <section className="relative pt-24 pb-16 md:pt-32 md:pb-24">
-        <div className="absolute inset-0 z-0 bg-black/40"></div>
+        {/* Background overlay with reduced opacity */}
+        <div className="absolute inset-0 z-0 bg-black/30"></div>
+        
+        {/* Background image with improved z-index and styling */}
         <div 
-          className="absolute inset-0 z-[-1] bg-cover bg-center" 
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1607252650355-f7fd0460ccdb?auto=format&fit=crop&q=80)' }}
+          className="absolute inset-0 z-[-1] bg-cover bg-center bg-fixed" 
+          style={{ 
+            backgroundImage: 'url(https://images.unsplash.com/photo-1524492412937-b28074a5d7da?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80)',
+            backgroundSize: 'cover',
+          }}
         ></div>
         
         <div className="container relative z-10 mx-auto max-w-5xl">
