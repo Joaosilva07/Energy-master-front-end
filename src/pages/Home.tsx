@@ -3,29 +3,63 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ZapIcon, LightbulbIcon, BarChart3, Target } from 'lucide-react';
+import { ZapIcon, LightbulbIcon, BarChart3, Target, ArrowRight, ArrowLeft, Home as HomeIcon } from 'lucide-react';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Hero Section */}
-      <section className="relative px-4 pt-16 pb-12 md:pt-24 md:pb-20">
-        <div className="container mx-auto max-w-5xl">
+    <div className="min-h-screen bg-background">
+      {/* Navigation Header */}
+      <header className="fixed w-full z-50 bg-background/80 backdrop-blur-sm border-b">
+        <div className="container mx-auto py-3 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <HomeIcon className="h-5 w-5 text-energy-primary" />
+            <span className="font-semibold">EnergyMaster</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate('/login')}
+            >
+              Login <ArrowRight className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => navigate('/signup')}
+            >
+              Registrar <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+      
+      {/* Hero Section with Background Image */}
+      <section className="relative pt-24 pb-16 md:pt-32 md:pb-24">
+        <div className="absolute inset-0 z-0 bg-black/40"></div>
+        <div 
+          className="absolute inset-0 z-[-1] bg-cover bg-center" 
+          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&q=80)' }}
+        ></div>
+        
+        <div className="container relative z-10 mx-auto max-w-5xl">
           <div className="flex flex-col items-center text-center">
             <div className="flex justify-center mb-6">
-              <div className="rounded-full bg-energy-primary/10 p-6">
+              <div className="rounded-full bg-white/10 backdrop-blur-sm p-6">
                 <ZapIcon className="h-16 w-16 text-energy-primary" />
               </div>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-energy-primary to-energy-secondary px-2">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-energy-primary to-energy-secondary px-4">
               EnergyMaster
             </h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl">
+            <p className="text-xl text-white mb-8 max-w-2xl px-4">
               Monitore e gerencie o consumo de energia da sua casa com inteligência e eficiência. 
               Economize energia e reduza sua conta de luz.
             </p>
@@ -41,6 +75,7 @@ const Home = () => {
               <Button 
                 size="lg" 
                 variant="outline"
+                className="bg-white/10 backdrop-blur-sm border-white text-white hover:bg-white/20"
                 onClick={() => navigate('/signup')}
               >
                 Criar uma conta
@@ -117,7 +152,7 @@ const Home = () => {
       </section>
       
       {/* CTA Section */}
-      <section className="py-16 md:py-24 px-4">
+      <section className="py-16 md:py-24 px-4 bg-gradient-to-br from-energy-primary/10 to-energy-secondary/10">
         <div className="container mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold mb-6">Comece a economizar energia hoje</h2>
           <p className="text-xl text-muted-foreground mb-8">
