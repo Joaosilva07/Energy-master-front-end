@@ -1,15 +1,17 @@
 
 import React, { useState } from 'react';
-import { Bell, Moon, Sun, User } from 'lucide-react';
+import { Bell, Home, Moon, Sun, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/contexts/UserContext';
 import { useTheme } from '@/components/ThemeProvider';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user, logout } = useUser();
   const { isDark, setIsDark } = useTheme();
+  const navigate = useNavigate();
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     return localStorage.getItem('notifications-enabled') === 'true';
   });
@@ -39,8 +41,16 @@ const Header = () => {
 
   return (
     <header className="h-14 border-b bg-background px-6 flex items-center justify-between">
-      <div>
-        {/* Search or left-side content can go here */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => navigate('/')}
+          title="Ir para a página inicial"
+        >
+          <Home className="h-4 w-4" />
+        </Button>
       </div>
       <div className="flex items-center gap-4">
         <Button 
