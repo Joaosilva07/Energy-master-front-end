@@ -9,17 +9,17 @@ const HeroSection = () => {
 
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-24">
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-500/40 to-purple-600/40"></div>
-      
       {/* Background image */}
       <div 
-        className="absolute inset-0 z-[-1] bg-cover bg-center bg-fixed" 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-fixed" 
         style={{ 
           backgroundImage: 'url(/images/back-view-family-watching-tv.jpg)',
           backgroundSize: 'cover',
         }}
       ></div>
+      
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 z-[1] bg-gradient-to-br from-blue-500/40 to-purple-600/40"></div>
       
       <div className="container relative z-10 mx-auto max-w-5xl">
         <div className="flex flex-col items-center text-center">
