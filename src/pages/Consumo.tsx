@@ -7,14 +7,17 @@ import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 
-// Imported components
+// Componentes importados
 import ConsumptionEmptyState from '@/components/consumption/ConsumptionEmptyState';
 import ConsumptionMetrics from '@/components/consumption/ConsumptionMetrics';
 import HourlyConsumptionChart from '@/components/consumption/HourlyConsumptionChart';
 import DeviceDistribution from '@/components/consumption/DeviceDistribution';
 import AIRecommendations from '@/components/consumption/AIRecommendations';
-import EnergyInsights from '@/components/consumption/EnergyInsights';
 import ConsumptionLoading from '@/components/consumption/ConsumptionLoading';
+
+// Import componentes de IA da nova pasta
+import SmartAlerts from '@/ai-processing/components/SmartAlerts';
+import EnergyOptimizer from '@/ai-processing/components/EnergyOptimizer';
 
 const Consumo = () => {
   const { devices, isLoading } = useDevices();
@@ -80,8 +83,15 @@ const Consumo = () => {
                 <AIRecommendations />
               </div>
 
-              {/* Energy insights (alerts) */}
-              <EnergyInsights />
+              {/* Smart Alerts (AI-powered) */}
+              <div className="mt-6">
+                <SmartAlerts />
+              </div>
+              
+              {/* Energy Optimizer (AI-powered) */}
+              <div className="mt-6">
+                <EnergyOptimizer />
+              </div>
             </>
           )}
         </main>
