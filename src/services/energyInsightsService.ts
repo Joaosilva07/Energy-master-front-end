@@ -18,7 +18,17 @@ export const energyInsightsService = {
         type: 'warning',
         title: 'Alto Consumo Detectado',
         description: `${highConsumptionDevices[0].name} está consumindo acima da média.`,
-        deviceId: highConsumptionDevices[0].id
+        deviceId: highConsumptionDevices[0].id,
+        confidence: 0.8,
+        source: 'rule-based',
+        actions: [
+          {
+            actionId: 'check_device',
+            title: 'Verificar Dispositivo',
+            description: 'Inspecione o dispositivo para garantir que está funcionando corretamente',
+            difficulty: 'easy'
+          }
+        ]
       });
     }
     
@@ -30,7 +40,18 @@ export const energyInsightsService = {
         type: 'info',
         title: 'Dispositivo Ligado sem Uso',
         description: `${inactiveButOnDevices[0].name} está ligado sem atividade recente.`,
-        deviceId: inactiveButOnDevices[0].id
+        deviceId: inactiveButOnDevices[0].id,
+        confidence: 0.9,
+        source: 'rule-based',
+        actions: [
+          {
+            actionId: 'turn_off',
+            title: 'Desligar',
+            description: 'Desligue o dispositivo para economizar energia',
+            automated: true,
+            difficulty: 'easy'
+          }
+        ]
       });
     }
     
@@ -39,7 +60,9 @@ export const energyInsightsService = {
       insights.push({
         type: 'success',
         title: 'Monitoramento Ativo',
-        description: 'Seus dispositivos estão sendo monitorados corretamente.'
+        description: 'Seus dispositivos estão sendo monitorados corretamente.',
+        confidence: 1.0,
+        source: 'rule-based'
       });
     }
 
