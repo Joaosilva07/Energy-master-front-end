@@ -3,36 +3,44 @@
 
 This directory contains the database schema and related files for the AI energy analysis features of the application.
 
-## Files in this directory
+## Migration Files
 
-- `schema.md` - Comprehensive documentation of the database schema, including tables, columns, relationships, and security policies.
-- `migrations.sql` - SQL migration scripts to create and set up the database schema in Supabase.
+- `ai_features_migration.sql` - SQL migration script to create the AI-related tables, RLS policies, and indexes.
+- `executeMigration.ts` - TypeScript utility to execute the migration (for documentation purposes).
 
-## Database Architecture
+## AI Database Tables
 
-The database is designed to support both the current functionality and future AI-driven energy analysis features. It consists of:
+The AI features use the following tables:
 
-1. **Core Tables** - For storing devices, goals, and tips
-2. **AI Analysis Tables** - For storing consumption history, AI insights, and optimization plans
+1. **consumption_history** - Stores historical energy consumption data for analysis
+2. **ai_insights** - Stores AI-generated insights about energy consumption
+3. **optimization_plans** - Stores AI-generated plans for optimizing energy usage
+4. **optimization_actions** - Stores individual device actions within optimization plans
 
-## Connecting to Supabase
+## How to Run the Migration
 
-To use this schema with Supabase:
+**Important:** The migration should be run manually in the Supabase SQL Editor.
 
-1. Create a new Supabase project
-2. Connect your application to Supabase using the integration feature
-3. Execute the SQL scripts in the SQL editor in the Supabase dashboard
-4. Set up appropriate environment variables
+1. Log in to your Supabase dashboard
+2. Navigate to the SQL Editor
+3. Copy the contents of `ai_features_migration.sql`
+4. Paste and execute in the SQL Editor
 
-## Row-Level Security (RLS)
+## Security Considerations
 
-All tables implement Row-Level Security to ensure users can only access their own data. This is critical for maintaining data privacy and security in a multi-tenant application.
+All tables implement Row-Level Security (RLS) policies to ensure users can only access their own data. This is critical for maintaining data privacy in a multi-tenant application.
 
-## Future Enhancements
+## Indexing Strategy
 
-As the AI features evolve, the database schema may need to be extended to support:
+Indexes have been created on frequently queried columns to improve performance:
+- User ID columns for filtering by user
+- Device ID columns for filtering by device
+- Timestamp columns for time-based queries
+- Foreign key columns for join operations
 
-- More detailed consumption patterns
-- Device-specific optimization strategies
-- User preference tracking for better recommendations
-- Integration with external energy data sources
+## Data Relationships
+
+- Each consumption record is linked to a specific device and user
+- Insights can be linked to specific devices (optional)
+- Optimization plans belong to users
+- Optimization actions are linked to specific plans and devices
