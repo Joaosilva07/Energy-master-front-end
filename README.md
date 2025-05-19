@@ -1,7 +1,7 @@
 
-# Energy Monitoring App - Documentação
+# EnergyMaster - Aplicativo de Monitoramento de Energia
 
-Este projeto é uma aplicação de monitoramento de energia que permite aos usuários gerenciar dispositivos conectados, acompanhar metas de consumo e visualizar dicas de economia.
+Este projeto é uma aplicação para monitoramento de energia que permite aos usuários gerenciar dispositivos conectados, acompanhar metas de consumo e visualizar dicas de economia.
 
 ## Sumário
 
@@ -9,7 +9,6 @@ Este projeto é uma aplicação de monitoramento de energia que permite aos usu�
 - [Tecnologias](#tecnologias)
 - [Instruções de Configuração](#instruções-de-configuração)
 - [API do Projeto](#api-do-projeto)
-- [Lista de Erros Conhecidos](#lista-de-erros-conhecidos)
 
 ## Estrutura do Projeto
 
@@ -22,11 +21,12 @@ O projeto está organizado em:
 
 ## Tecnologias
 
-- React (com TypeScript)
+- React com TypeScript
 - React Router Dom para navegação
 - Tailwind CSS para estilização
 - Shadcn/ui como biblioteca de componentes
 - Lucide React para ícones
+- Supabase para backend e autenticação
 
 ## Instruções de Configuração
 
@@ -37,7 +37,3 @@ O projeto está organizado em:
 ## API do Projeto
 
 Consulte [API.md](API.md) para a documentação completa das APIs do projeto.
-
-## Lista de Erros Conhecidos
-
-Consulte [ERRORS.md](ERRORS.md) para uma lista de erros conhecidos e suas soluções.

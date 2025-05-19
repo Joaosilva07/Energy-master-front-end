@@ -13,6 +13,7 @@ interface FeedbackDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Tipos de feedback disponíveis
 const feedbackTypes = [
   { id: 'suggestion', label: 'Sugestão', icon: <ThumbsUp className="h-4 w-4" /> },
   { id: 'issue', label: 'Problema', icon: <ThumbsDown className="h-4 w-4" /> },
@@ -40,7 +41,7 @@ const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
       description: "Agradecemos por compartilhar sua opinião.",
     });
     
-    // Reset form
+    // Limpar formulário
     setFeedbackType('suggestion');
     setMessage('');
     setContactInfo('');
