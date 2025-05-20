@@ -1,7 +1,6 @@
-
 import { Device } from '@/types/device.types';
 import { OptimizationPlan, OptimizationDeviceAction } from '@/types/energyAnalysis.types';
-import { nanoid } from '@/lib/utils';
+import { v4 as uuidv4 } from '@/lib/utils';
 
 export const energyOptimizerService = {
   /**
@@ -34,7 +33,7 @@ export const energyOptimizerService = {
       const totalSavings = deviceActions.reduce((sum, action) => sum + action.estimatedImpact, 0);
       
       plans.push({
-        id: nanoid(),
+        id: uuidv4(),
         name: 'Economia Imediata: Desligar Dispositivos Ociosos',
         description: 'Desliga dispositivos que estão ligados sem uso ativo',
         estimatedSavings: totalSavings,
@@ -61,7 +60,7 @@ export const energyOptimizerService = {
       const totalSavings = deviceActions.reduce((sum, action) => sum + action.estimatedImpact, 0);
       
       plans.push({
-        id: nanoid(),
+        id: uuidv4(),
         name: 'Economia Noturna',
         description: 'Desliga dispositivos de entretenimento automaticamente durante a noite',
         estimatedSavings: totalSavings,
@@ -96,7 +95,7 @@ export const energyOptimizerService = {
       const totalSavings = deviceActions.reduce((sum, action) => sum + action.estimatedImpact, 0);
       
       plans.push({
-        id: nanoid(),
+        id: uuidv4(),
         name: 'Economia em Horário de Pico',
         description: 'Reduz o consumo de dispositivos de alto consumo durante horários de pico',
         estimatedSavings: totalSavings,
