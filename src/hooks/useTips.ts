@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { tipsService } from '@/services/tipsService';
 
 export interface Tip {
   id: string;
@@ -10,6 +10,7 @@ export interface Tip {
   savings?: string;
   category: string;
   featured: boolean;
+  created_at?: string;
 }
 
 export const useTips = () => {
@@ -19,48 +20,37 @@ export const useTips = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Buscar dicas do Supabase
+  // Buscar todas as dicas do banco
   const fetchTips = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
-      // Tenta buscar dicas do Supabase
-      const { data, error } = await supabase
-        .from('tips')
-        .select('*');
-
-      if (error) {
-        console.error('Erro ao buscar dicas do Supabase:', error);
-        setError('Falha ao carregar dicas');
+      const result = await tipsService.getAllTips();
+      
+      if (result.success && result.tips.length > 0) {
+        setTips(result.tips);
         
-        // Por enquanto, carrega dados simulados como fallback
-        setTips(mockTips);
-        setFeaturedTips(mockTips.filter(tip => tip.featured));
-        setDailyTip(mockTips[0]);
-      } else if (data.length > 0) {
-        // Formata os dados do Supabase
-        const formattedTips = data.map(item => ({
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          icon: item.icon,
-          savings: item.savings,
-          category: item.category,
-          featured: item.featured
-        }));
+        // Filtrar dicas em destaque
+        const featured = result.tips.filter(tip => tip.featured);
+        setFeaturedTips(featured);
         
-        setTips(formattedTips);
-        setFeaturedTips(formattedTips.filter(tip => tip.featured));
-        
-        // Seleciona uma dica aleatória como dica do dia
-        const randomIndex = Math.floor(Math.random() * formattedTips.length);
-        setDailyTip(formattedTips[randomIndex]);
+        // Selecionar dica do dia (primeira dica em destaque ou aleatória)
+        if (featured.length > 0) {
+          setDailyTip(featured[0]);
+        } else if (result.tips.length > 0) {
+          const randomIndex = Math.floor(Math.random() * result.tips.length);
+          setDailyTip(result.tips[randomIndex]);
+        }
       } else {
-        // Se não houver dados no banco, usa os dados simulados
+        // Se não há dicas no banco, usar dados simulados como fallback
         setTips(mockTips);
         setFeaturedTips(mockTips.filter(tip => tip.featured));
         setDailyTip(mockTips[0]);
+        
+        if (result.message) {
+          setError(result.message);
+        }
       }
     } catch (err) {
       console.error('Falha ao buscar dicas:', err);
@@ -95,7 +85,7 @@ export const useTips = () => {
   };
 };
 
-// Dados simulados para fallback
+// Dados simulados para fallback (mantendo os existentes)
 const mockTips: Tip[] = [
   {
     id: '1',
