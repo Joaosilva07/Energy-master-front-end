@@ -87,13 +87,24 @@ export const useAIEnergy = () => {
       const result = energyOptimizerService.executePlan(plan, devices);
       
       if (result.success) {
-        // Na implementação real, isso atualizaria os dispositivos via IoT
-        // Por enquanto, apenas atualizamos o estado local
-        result.modifiedDevices.forEach(device => {
-          if (device.powerState !== devices.find(d => d.id === device.id)?.powerState) {
-            updateDeviceStatus(device.id, device.powerState);
-          }
-        });
+        // Só atualiza dispositivos se houve mudanças reais (planos imediatos)
+        if (plan.scheduleType === 'immediate') {
+          result.modifiedDevices.forEach(device => {
+            const originalDevice = devices.find(d => d.id === device.id);
+            if (originalDevice && device.powerState !== originalDevice.powerState) {
+              updateDeviceStatus(device.id, device.powerState);
+            }
+          });
+        } else {
+          // Para planos agendados, atualiza o plano no estado local
+          setOptimizationPlans(prevPlans => 
+            prevPlans.map(p => 
+              p.id === planId 
+                ? { ...p, scheduleConfig: { ...p.scheduleConfig, active: true } }
+                : p
+            )
+          );
+        }
         
         toast({
           title: "Plano executado",

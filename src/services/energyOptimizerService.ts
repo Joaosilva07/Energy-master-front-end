@@ -1,4 +1,3 @@
-
 import { Device } from '@/types/device.types';
 import { OptimizationPlan, OptimizationDeviceAction } from '@/types/energyAnalysis.types';
 import { v4 as uuidv4 } from '@/lib/utils';
@@ -131,11 +130,27 @@ export const energyOptimizerService = {
       };
     }
     
-    // Aqui apenas simulamos a execução do plano
-    // Na implementação real, integraria com controle real dos dispositivos
+    // Para planos agendados ou recorrentes, apenas confirma o agendamento sem modificar dispositivos
+    if (plan.scheduleType === 'scheduled' || plan.scheduleType === 'recurring') {
+      // Ativa o agendamento no plano
+      const updatedPlan = {
+        ...plan,
+        scheduleConfig: {
+          ...plan.scheduleConfig,
+          active: true
+        }
+      };
+      
+      return {
+        success: true,
+        modifiedDevices: devices, // Não modifica os dispositivos para planos agendados
+        message: `Plano "${plan.name}" foi agendado com sucesso`
+      };
+    }
+    
+    // Para planos imediatos, aplica as mudanças nos dispositivos
     const modifiedDevices = [...devices];
     
-    // Aplicamos as ações aos dispositivos
     plan.devices.forEach(action => {
       const deviceIndex = modifiedDevices.findIndex(d => d.id === action.deviceId);
       if (deviceIndex === -1) return;
@@ -150,8 +165,6 @@ export const energyOptimizerService = {
           break;
           
         case 'reduce_power':
-          // Simulação de redução de consumo 
-          // (na implementação real, dependeria da integração IoT)
           const reduction = action.parameters?.targetReduction || 0.1;
           modifiedDevices[deviceIndex] = {
             ...modifiedDevices[deviceIndex],
@@ -160,7 +173,6 @@ export const energyOptimizerService = {
           break;
           
         default:
-          // Outros tipos de ação seriam implementados aqui
           break;
       }
     });
