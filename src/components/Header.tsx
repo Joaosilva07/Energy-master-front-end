@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Bell, Home, Moon, Sun, User } from 'lucide-react';
+import { Bell, Moon, Sun, User, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUser } from '@/contexts/UserContext';
@@ -42,22 +41,16 @@ const Header = () => {
   return (
     <header className="h-14 border-b bg-background px-6 flex items-center justify-between">
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => navigate('/')}
-          title="Ir para a página inicial"
-        >
-          <Home className="h-4 w-4" />
-        </Button>
+        {/* Decorative user icon that doesn't do anything */}
+        <div className="flex items-center justify-center h-8 w-8 text-muted-foreground">
+          <UserRound className="h-5 w-5" />
+        </div>
         
         {user && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/user-home')}
-            className="ml-2"
           >
             Área do Usuário
           </Button>

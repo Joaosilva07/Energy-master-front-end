@@ -1,10 +1,23 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { v4 as uuid } from "uuid"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+/**
+ * Generate a unique ID
+ */
+export function nanoid(): string {
+  return uuid().replace(/-/g, '');
+}
+
+/**
+ * Re-export uuid v4 for compatibility
+ */
+export const v4 = uuid;
 
 /**
  * Verifica se o usuário está autenticado usando múltiplos métodos
@@ -31,4 +44,3 @@ export function clearAuthData(): void {
   localStorage.removeItem('user');
   localStorage.removeItem('supabase.auth.token');
 }
-

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart3, Home, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquare } from 'lucide-react';
+import { BarChart3, ZapIcon, Settings, Cpu, LightbulbIcon, Target, Info, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/contexts/UserContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -11,7 +11,6 @@ const Sidebar = () => {
   const { user } = useUser();
   
   const menuItems = [
-    { icon: Home, label: 'Página Inicial', path: '/' },
     { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
     { icon: ZapIcon, label: 'Consumo', path: '/consumo' },
     { icon: Cpu, label: 'Dispositivos', path: '/dispositivos' },

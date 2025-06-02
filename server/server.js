@@ -4,7 +4,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import detectPort from 'detect-port';
-import pool from './config/db.js'; // Importa a configuração do banco de dados
+import pool from './config/db.js';
 
 // Carrega as variáveis de ambiente
 dotenv.config();
@@ -57,7 +57,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Credenciais inválidas' });
     }
 
-    const token = 'fake-jwt-token'; // Substitua por lógica real de geração de token JWT
+    const token = 'fake-jwt-token';
     res.status(200).json({ token, user: { id: user.id, name: user.name, email: user.email } });
   } catch (error) {
     console.error('Erro ao fazer login:', error);

@@ -19,6 +19,8 @@ import Home from "./pages/Home";
 import UserHome from "./pages/UserHome";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { UserProvider } from "./contexts/UserContext";
+import { LoadingProvider } from "./contexts/LoadingContext";
+import LoadingScreen from "./components/LoadingScreen";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -73,49 +75,52 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <UserProvider>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/user-home" element={
-                  <ProtectedRoute>
-                    <UserHome />
-                  </ProtectedRoute>
-                } />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<SignUp />} />
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/consumo" element={
-                  <ProtectedRoute>
-                    <Consumo />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dispositivos" element={
-                  <ProtectedRoute>
-                    <Dispositivos />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dicas" element={
-                  <ProtectedRoute>
-                    <Dicas />
-                  </ProtectedRoute>
-                } />
-                <Route path="/metas" element={
-                  <ProtectedRoute>
-                    <Metas />
-                  </ProtectedRoute>
-                } />
-                <Route path="/configuracoes" element={
-                  <ProtectedRoute>
-                    <Configuracoes />
-                  </ProtectedRoute>
-                } />
-                <Route path="/sobrenos" element={<SobreNos />} />
-                <Route path="/faq" element={<FAQ />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <LoadingProvider>
+                <LoadingScreen />
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/user-home" element={
+                    <ProtectedRoute>
+                      <UserHome />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/consumo" element={
+                    <ProtectedRoute>
+                      <Consumo />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dispositivos" element={
+                    <ProtectedRoute>
+                      <Dispositivos />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dicas" element={
+                    <ProtectedRoute>
+                      <Dicas />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/metas" element={
+                    <ProtectedRoute>
+                      <Metas />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/configuracoes" element={
+                    <ProtectedRoute>
+                      <Configuracoes />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/sobrenos" element={<SobreNos />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </LoadingProvider>
             </UserProvider>
           </BrowserRouter>
         </TooltipProvider>
