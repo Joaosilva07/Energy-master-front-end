@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { LineChart, ActivitySquare, ZapIcon, Gauge } from 'lucide-react';
+import { LineChart, ActivitySquare, ZapIcon, Gauge, Plus } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import EnergyCard from '@/components/EnergyCard';
@@ -9,6 +9,7 @@ import EnergySavingTips from '@/components/EnergySavingTips';
 import DeviceMonitoring from '@/components/DeviceMonitoring';
 import { useDevices } from '@/hooks/useDevices';
 import { useEnergyAnalysis } from '@/hooks/useEnergyAnalysis';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const { devices, isLoading } = useDevices();
@@ -43,11 +44,10 @@ const Dashboard = () => {
   const activeDevices = devices.filter(d => d.powerState).length;
   
   // Define percentage change values for metrics
-  // In a real app these would come from comparing with previous period data
-  const efficiencyChange = analysisData?.metrics ? 5.2 : 0; // Positive change in efficiency
-  const consumptionChange = analysisData?.metrics ? -3.5 : 0; // Negative change in consumption (good)
-  const peakChange = analysisData?.metrics ? -2.8 : 0; // Negative change in peak consumption (good)
-  const costChange = analysisData?.metrics ? -2.1 : 0; // Negative change in cost (good)
+  const efficiencyChange = analysisData?.metrics ? 5.2 : 0;
+  const consumptionChange = analysisData?.metrics ? -3.5 : 0;
+  const peakChange = analysisData?.metrics ? -2.8 : 0;
+  const costChange = analysisData?.metrics ? -2.1 : 0;
 
   return (
     <div className="flex h-screen bg-background">
@@ -67,7 +67,7 @@ const Dashboard = () => {
 
           {hasDevices ? (
             <>
-              {/* Energy Cards with improved metrics - rounded values */}
+              {/* Energy Cards with improved metrics */}
               <div className="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <EnergyCard
                   title="Consumo Total"
@@ -111,21 +111,28 @@ const Dashboard = () => {
             </>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 space-y-6">
-              <div className="rounded-full bg-muted p-6">
-                <ZapIcon className="h-12 w-12 text-muted-foreground opacity-50" />
+              <div className="rounded-full bg-gradient-to-br from-energy-primary/10 to-energy-primary/20 p-8">
+                <ZapIcon className="h-16 w-16 text-energy-primary" />
               </div>
-              <div className="text-center space-y-2">
-                <h2 className="text-xl font-semibold">Sem dados de consumo</h2>
-                <p className="text-muted-foreground max-w-md">
-                  Você ainda não cadastrou nenhum dispositivo. Adicione dispositivos para começar a monitorar seu consumo de energia.
+              <div className="text-center space-y-3 max-w-md">
+                <h2 className="text-2xl font-semibold">Bem-vindo ao EnergyMaster!</h2>
+                <p className="text-muted-foreground">
+                  Comece adicionando seus dispositivos para monitorar o consumo de energia, 
+                  receber insights inteligentes e economizar na conta de luz.
                 </p>
+                <div className="pt-4 space-y-3">
+                  <Button 
+                    className="bg-energy-primary hover:bg-energy-primary/90 text-white px-6 py-3 text-base font-medium"
+                    onClick={() => window.location.href = '/dispositivos'}
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Adicionar Primeiro Dispositivo
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Adicione dispositivos como TV, geladeira, ar-condicionado e mais
+                  </p>
+                </div>
               </div>
-              <button 
-                className="bg-energy-primary hover:bg-energy-primary/90 text-white px-4 py-2 rounded-md"
-                onClick={() => window.location.href = '/dispositivos'}
-              >
-                Adicionar Dispositivos
-              </button>
             </div>
           )}
 

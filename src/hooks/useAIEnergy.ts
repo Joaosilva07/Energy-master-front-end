@@ -96,11 +96,18 @@ export const useAIEnergy = () => {
             }
           });
         } else {
-          // Para planos agendados, atualiza o plano no estado local
+          // Para planos agendados, atualiza o plano no estado local mantendo na lista
           setOptimizationPlans(prevPlans => 
             prevPlans.map(p => 
               p.id === planId 
-                ? { ...p, scheduleConfig: { ...p.scheduleConfig, active: true } }
+                ? { 
+                    ...p, 
+                    scheduleConfig: { 
+                      ...p.scheduleConfig, 
+                      active: true 
+                    },
+                    name: p.name + ' (Agendado)' // Indica visualmente que foi agendado
+                  }
                 : p
             )
           );
@@ -156,10 +163,7 @@ export const useAIEnergy = () => {
     }
     
     // Simulação de execução da ação
-    // Na implementação real, isso executaria ações concretas em dispositivos ou sistemas
-    
     if (actionId === 'turn_off' && insight.deviceId) {
-      // Exemplo: Se a ação for desligar, realmente desligamos o dispositivo
       updateDeviceStatus(insight.deviceId, false);
       
       toast({
@@ -167,7 +171,6 @@ export const useAIEnergy = () => {
         description: `${action.title} para ${insight.title}`,
       });
     } else {
-      // Para outras ações, apenas notificamos o usuário
       toast({
         title: action.title,
         description: action.description,
