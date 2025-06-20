@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,18 @@ const Login = () => {
       setPassword(savedPassword);
       setRememberMe(true);
     }
+
+    // Test Supabase connection
+    const testConnection = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        console.log('Supabase connection test:', { data, error });
+      } catch (error) {
+        console.error('Supabase connection failed:', error);
+      }
+    };
+    
+    testConnection();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,12 +48,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      console.log('Attempting login with:', { email, supabaseUrl: import.meta.env.VITE_SUPABASE_URL });
+
       // Handle "Remember Me" functionality
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
         localStorage.setItem('rememberedPassword', password);
       } else {
-        // If remember me is not checked, clear any saved credentials
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberedPassword');
       }
@@ -49,6 +63,8 @@ const Login = () => {
         email,
         password,
       });
+
+      console.log('Login response:', { data, error });
 
       if (error) {
         throw error;
@@ -59,7 +75,7 @@ const Login = () => {
         const userData = {
           id: data.user.id,
           email: data.user.email || '',
-          name: data.user.user_metadata.name || '',
+          name: data.user.user_metadata.name || data.user.email?.split('@')[0] || '',
           role: data.user.role || 'user'
         };
         
@@ -67,7 +83,7 @@ const Login = () => {
         
         toast({
           title: 'Login bem-sucedido!',
-          description: `Bem-vindo, ${userData.name || userData.email}!`,
+          description: `Bem-vindo, ${userData.name}!`,
         });
 
         // Set authentication state in localStorage and sessionStorage
@@ -82,9 +98,20 @@ const Login = () => {
       }
     } catch (error: any) {
       console.error('Erro ao fazer login:', error);
+      
+      let errorMessage = 'Erro ao tentar fazer login';
+      
+      if (error.message === 'Failed to fetch') {
+        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+      } else if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Email ou senha incorretos';
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = 'Por favor, confirme seu email antes de fazer login';
+      }
+      
       toast({
         title: 'Erro',
-        description: error.message || 'Erro ao tentar fazer login',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -117,7 +144,7 @@ const Login = () => {
                 <label className="text-sm font-medium">Email</label>
                 <div className="relative">
                   <Input
-                    type="text"
+                    type="email"
                     placeholder="Coloque seu email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
